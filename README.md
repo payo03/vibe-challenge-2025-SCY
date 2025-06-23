@@ -6,6 +6,7 @@
 
 - `backend`: Spring Boot 백엔드 소스 코드
 - `frontend`: Vue.js 프론트엔드 소스 코드
+- `backend/src/main/resources/static/`: Vue 빌드 결과물(정적 파일)
 
 ## 시작 가이드
 
@@ -21,5 +22,5 @@ cd backend
 ```bash
 cd frontend
 npm install
-npm run serve
+npm run build
 ``` 
