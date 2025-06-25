@@ -29,7 +29,7 @@ public class ChatbotService {
 
     public ChatResponse generateResponse(ChatRequest request) {
         logger.info("=== Gemini API 호출 시작 ===");
-        String prompt = request.getPrompt() != null ? request.getPrompt() : "당신은 친근한 여행 도우미 챗봇입니다. 질문에 맞는 언어(한글/영어)로 자연스럽게 답변해 주세요.";
+        String prompt = "당신은 친근한 여행 도우미 챗봇입니다. 질문에 맞는 언어(한글/영어)로 자연스럽게 답변해 주세요.";
         String message = request.getMessage();
 
         try {
