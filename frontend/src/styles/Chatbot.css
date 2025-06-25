@@ -187,14 +187,30 @@
 }
 
 .message-input {
-  flex: 1;
+  /* 기존 스타일 유지 */
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  border: 2px solid black;       /* 검은색 테두리 추가 */
+  box-sizing: border-box;         /* 테두리 크기 포함 */
+
+  /* 기타 기존 스타일 */
   padding: 0.75rem 1rem;
-  border: 1px solid #e1e5e9;
   border-radius: 1.5rem;
   font-size: 1rem;
   outline: none;
-  transition: border-color 0.2s;
+  resize: none;
+  min-height: 2.5rem;
+  max-height: 6rem;
+  line-height: 1.4;
   background: white;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .message-input:focus {
@@ -359,3 +375,118 @@
 .bot-message .message-content p {
   font-size: 0.65rem;
 } 
+
+.typing-dots {
+  font-weight: 700;
+  font-size: 1.2em;
+  letter-spacing: 0.3em;
+  color: transparent;
+  position: relative;
+  user-select: none;
+}
+
+.typing-dots::before {
+  content: '.';
+  color: #333;
+  position: absolute;
+  left: 0;
+  top: 0;
+  animation: blinkDots 1.5s steps(4, start) infinite;
+}
+
+@keyframes blinkDots {
+  0% {
+    content: '';
+  }
+  25% {
+    content: '.';
+  }
+  50% {
+    content: '..';
+  }
+  75% {
+    content: '...';
+  }
+  100% {
+    content: '';
+  }
+}
+
+.message-content strong {
+  font-weight: 700;
+}
+
+.message-content em {
+  font-style: italic;
+}
+
+.message-content ul {
+  padding-left: 1.2rem;
+  margin: 0.5rem 0;
+  list-style-type: disc;
+}
+
+.message-content li {
+  margin-bottom: 0.3rem;
+}
+
+.message-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e1e5e9;
+  border-radius: 1.5rem;
+  font-size: 1rem;
+  outline: none;
+  resize: none;           /* 크기 조절 불가 */
+  min-height: 2.5rem;
+  max-height: 6rem;
+  line-height: 1.4;
+  background: white;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  overflow-y: auto;
+}
+
+.message-input:focus {
+  border-color: #007AFF;
+  box-shadow: 0 0 5px rgba(0, 122, 255, 0.5);
+}
+
+.message-input:disabled {
+  background: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.message-input {
+  /* ...기존 스타일 유지... */
+  
+  white-space: pre-wrap;    /* 줄바꿈 문자와 공백 유지 */
+  word-break: break-word;   /* 긴 단어도 자동 줄바꿈 */
+  overflow-wrap: break-word; /* 추가 줄바꿈 보장 */
+
+  overflow-x: hidden;       /* 가로 스크롤 숨김 */
+  overflow-y: auto;         /* 세로 스크롤만 허용 */
+}
+
+.message-input::-webkit-scrollbar {
+  width: 8px;
+}
+
+.message-input::-webkit-scrollbar-track {
+  background: #fff; /* 흰 바탕 유지 */
+  border: 1px solid black; /* 검은색 테두리 */
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.message-input::-webkit-scrollbar-thumb {
+  background-color: #007AFF;
+  border-radius: 4px;
+  border: 2px solid black;  /* 검은색 테두리 */
+}
+
+.message-input::-webkit-scrollbar-thumb:hover {
+  background-color: #0056CC;
+}
