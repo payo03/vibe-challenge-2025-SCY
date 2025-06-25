@@ -1,0 +1,40 @@
+.header-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem; background: #fff; border-bottom: 1px solid #eee;
+}
+.actions button {
+  margin-left: 0.5rem;
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.login-btn {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+.login-btn:hover {
+  background: linear-gradient(90deg, #5a67d8 0%, #6b46c1 100%);
+}
+.register-btn {
+  background: #fff;
+  color: #764ba2;
+  border: 1.5px solid #764ba2;
+}
+.register-btn:hover {
+  background: #f3e8ff;
+  color: #5a189a;
+  border-color: #5a189a;
+}
+.logout-btn {
+  background: #eee;
+  color: #333;
+}
+.logout-btn:hover {
+  background: #ddd;
+  color: #764ba2;
+}
+.logo { font-weight: bold; font-size: 1.2rem; } 
