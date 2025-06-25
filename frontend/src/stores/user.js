@@ -23,7 +23,15 @@ export const useUserStore = defineStore('user', () => {
     isLoggedIn.value = true
   }
 
-  function logout() {
+  async function logout() {
+    if (user.value?.id) {
+      try {
+        await axios.post('/api/auth/logout', { id: user.value.id })
+      } catch (e) {
+        console.error('로그아웃 요청 실패:', e)
+        // 서버 오류 무시하고 클라이언트 로그아웃 진행
+      }
+    }
     user.value = null
     isLoggedIn.value = false
   }
