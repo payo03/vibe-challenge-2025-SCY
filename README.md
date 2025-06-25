@@ -111,16 +111,6 @@ gradlew bootRun
 
 ---
 
----
-
-## 🔧 API 엔드포인트
-
-### 챗봇 API
-- `POST /api/chat` - 사용자 메시지 전송 및 AI 응답
-- `GET /api/chat/health` - API 상태 확인
-
----
-
 ## 🎯 사용 예시
 
 ### 여행지 추천
@@ -144,71 +134,12 @@ AI: "부산 2박 3일 여행 일정을 제안드립니다...
 
 ---
 
-## 🔐 환경 변수
-
-```properties
-# Gemini API 설정
-gemini.api.key=YOUR_GEMINI_API_KEY_HERE
-
-# 서버 설정
-server.port=8080
-spring.profiles.active=dev
-
-# 로깅 설정
-logging.level.com.example.demo=DEBUG
-```
-
----
-
 ## 📝 개발 가이드
 
 ### 새로운 기능 추가
 1. **백엔드**: Service 클래스에 비즈니스 로직 구현
 2. **프론트엔드**: Vue 컴포넌트 생성 및 API 연동
 3. **AI 프롬프트**: Gemini API 프롬프트 엔지니어링
-
-### AI 모델 변경
-- Gemini 모델을 변경하려면 ChatbotService.java의 URL을 수정하세요.
-- 지원 모델: gemini-2.0-flash, gemini-1.5-flash, gemini-pro 등
-
-### 테스트
-```bash
-# 백엔드 테스트
-cd backend
-gradlew test
-
-# 프론트엔드 테스트
-cd frontend
-npm run test
-```
-
----
-
-## 🔧 문제 해결
-
-### Gemini API 연결 문제
-```bash
-# API 키 확인
-# application.properties에서 gemini.api.key 값 확인
-
-# API 키 유효성 테스트
-curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=YOUR_API_KEY" \
-  -H 'Content-Type: application/json' \
-  -X POST \
-  -d '{"contents":[{"parts":[{"text":"Hello"}]}]}'
-```
-
-### 빌드 문제
-```bash
-# 프론트엔드 의존성 재설치
-cd frontend
-rm -rf node_modules
-npm install
-
-# 백엔드 캐시 클리어
-cd backend
-gradlew clean
-```
 
 ---
 
