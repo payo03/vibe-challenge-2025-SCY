@@ -5,6 +5,11 @@
 
 ---
 
+## 🤖 프로젝트 설정 도우미 (Project Setup Assistant)
+이 프로젝트의 **Spring Boot 백엔드와 Vue.js 프론트엔드의 초기 구조 설정**, 주요 코드 생성, 그리고 OpenAI(ChatGPT) 및 Ollama에서 Gemini API로의 전환 과정은 AI 코딩 어시스턴트인 **Cursor(Gemini)**의 도움을 받아 진행되었습니다. 이를 통해 초기 개발 시간을 단축하고, 프로젝트 구조의 일관성을 유지할 수 있었습니다.
+
+---
+
 ## ✨ 주요 기능
 
 - 🤖 **AI 기반 여행 상담**: Google Gemini API의 **gemini-2.0-flash** 모델을 활용한 자연스러운 한국어/영어 대화
@@ -148,26 +153,6 @@ gradlew bootRun
 - `POST /api/chat` - 사용자 메시지 전송 및 AI 응답
 - `GET /api/chat/health` - API 상태 확인
 
-### 예시 요청
-```json
-POST /api/chat
-{
-  "message": "서울에서 3박 4일 여행 계획을 만들어줘",
-  "sessionId": "user123",
-  "prompt": "당신은 친근한 여행 도우미 챗봇입니다.",
-  "model": "gemini-2.0-flash",
-  "maxTokens": 256,
-  "temperature": 0.7
-}
-```
-
-### Gemini API 호출
-```java
-// ChatbotService.java에서 Gemini API 호출
-String geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey;
-// POST 요청으로 AI 모델에 프롬프트 전송
-```
-
 ---
 
 ## 🎯 사용 예시
@@ -262,7 +247,6 @@ gradlew clean
 ---
 
 ## 💰 비용 정보
-
 ### Gemini API 요금 (Free Tier)
 `gemini-2.0-flash` 모델은 현재 무료로 사용할 수 있으며, 다음과 같은 넉넉한 사용량 한도를 제공합니다.
 
@@ -279,12 +263,6 @@ gradlew clean
 ## 📄 라이선스
 
 이 프로젝트는 MIT 라이선스 하에 배포됩니다.
-
----
-
-## 📞 문의
-
-프로젝트에 대한 문의사항이나 버그 리포트는 이슈를 통해 남겨주세요.
 
 ---
 
