@@ -99,3 +99,31 @@
 - **조치:**
   1. createUserResponse 등 중간 함수는 제거하고, 컨트롤러에서 UserResponse.builder()를 직접 사용해 필요한 필드만 세팅하도록 리팩토링함.
   2. UserResponse에 필드가 추가/변경되어도 각 응답에서 builder에만 추가하면 되므로, 확장성과 유지보수성이 크게 향상됨.
+
+- **요청:**
+  대화 흐름 및 문맥 유지를 위해, 사용자가 추가 질문이나 세부 변경 요청을 할 경우 이전 대화 내용을 기억하고 반영해야 한다. 예시: 첫 답변으로 파리 일정을 추천한 뒤 "2일로 줄이면?" 질문 시, 앞서 제시한 3일 일정을 참고해 2일 분량으로 조정된 일정을 제시. 이때도 앞서 대화한 맥락을 유지하여 일관성 있는 답변을 해야 한다.
+  이를 위해 DB에 user_profile_log 테이블을 사용해 데이터를 저장할 계획이며, 로그인하지 않은 유저는 insert하지 않는다.
+
+  - Case. 로그인한 User가 1분 이상 input값이 없을 시
+    1. user_id를 기반으로 user_profile_log의 데이터 GET
+    2. (결과 존재 시) trait, last_answer, age_group의 데이터를 기반으로 API 호출
+       - 단답으로 답해야 함. (예: "나는 예전엔 [2번.last_answer의 답변을 받았고, 너가 나를 2번.trait와 2번.age_group으로 분석했어] 오늘한 대화까지 포함해서 나의 성향과 나이대를 다시 추측 및 분석해줘 (ex, 성향: 외향적 / 나이: 30대)")
+    3. (결과 미존재 시) 단답으로 답해야 함. (예: "나의 성향과 나이대를 다시 추측 및 분석해줘 (ex, 성향: 외향적 / 나이: 30대)")
+    4. Gemini의 마지막 호출의 답변 + 2번의 RETURN 값을 table에 insert
+
+- **설계/조치:**
+  1. user_profile_log 테이블 설계 및 로그인한 유저만 insert하도록 로직 분기 필요
+  2. 1분 이상 입력 없을 때 user_id로 DB 조회, 결과에 따라 trait/last_answer/age_group 기반 분석 프롬프트 생성
+  3. Gemini API 호출 후, 마지막 답변과 분석 결과를 user_profile_log에 저장하는 흐름 설계
+
+- **요청:**
+  Gemini API의 최신 request 양식(systemInstruction, contents 등)을 ChatbotService에 반영해달라. (curl 예시 참고)
+- **조치:**
+  1. ChatbotService에서 Gemini API 호출 시, systemInstruction과 contents 구조를 curl 예시와 동일하게 맞추도록 requestBody 생성 로직을 수정함.
+
+- **요청:**
+  세션 변수 관리를 Map<String, Map<String, Object>> 구조로, 첫번째 Map의 Key는 userId, 두번째 Map은 해당 유저의 데이터로 관리해야 한다. (여러 명이 동시에 사용할 수 있기 때문)
+- **조치/고려:**
+  1. 기존에는 HttpSession에 단일 키로 값을 저장했으나, 여러 유저가 동시에 사용할 경우 데이터가 섞일 수 있음.
+  2. Map<String, Map<String, Object>> 구조로 userId별로 독립적인 세션 데이터 관리가 가능해짐.
+  3. 세션 내에서 userId별로 데이터 분리/초기화/조회가 용이해져, 멀티유저 환경에서 안전하게 동작할 수 있음.

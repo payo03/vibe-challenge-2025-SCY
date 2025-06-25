@@ -14,7 +14,9 @@ export const useChatStore = defineStore('chat', () => {
   const isLoading = ref(false)
   const error = ref(null)
 
-  async function sendMessage(message, options = {}) {
+  async function sendMessage(message, userId) {
+    // 06-25. Logan : 비로그인시 default user 설정
+    if (!userId) userId = 'demo-user';
     if (!message.trim() || isLoading.value) return
     
     const userTimestamp = new Date()
@@ -32,8 +34,7 @@ export const useChatStore = defineStore('chat', () => {
     try {
       const response = await axios.post('/api/chat', {
         message: message,
-        sessionId: 'demo-user',
-        ...options
+        sessionId: userId,
       })
       
       messages.value.push({ 
