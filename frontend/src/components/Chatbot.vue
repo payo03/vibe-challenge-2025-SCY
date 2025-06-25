@@ -73,9 +73,6 @@ const chatStore = useChatStore()
 const input = ref('')
 const messagesContainer = ref(null)
 
-// 기본 프롬프트
-const defaultPrompt = '당신은 친근한 여행 도우미 챗봇입니다. 질문에 맞는 언어(한글/영어)로 자연스럽게 답변해 주세요.'
-
 function formatTime(timestamp) {
   if (!timestamp) return ''
   const date = new Date(timestamp)
@@ -97,12 +94,7 @@ async function sendMessage() {
   if (!input.value.trim() || chatStore.isLoading) return
   const message = input.value
   input.value = ''
-  await chatStore.sendMessage(message, {
-    prompt: defaultPrompt,
-    model: 'gemini-2.0-flash',
-    maxTokens: 256,
-    temperature: 0.7
-  })
+  await chatStore.sendMessage(message)
   scrollToBottom()
 }
 
