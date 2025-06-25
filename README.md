@@ -48,7 +48,7 @@
 ### 2. Gemini API 설정 및 활용
 - **모델**: gemini-2.0-flash (빠른 응답, 한국어/영어 지원)
 - **장점**: 
-  - 무료 사용량 제공 (월 15회)
+  - 무료 사용량 제공
   - 빠른 응답 속도
   - 안정적인 서비스
   - 한국어/영어 자연스러운 지원
@@ -56,8 +56,7 @@
 ### 3. AI 프롬프트 엔지니어링
 ```java
 // 여행 전문가 역할 부여
-String prompt = "당신은 친근한 여행 도우미 챗봇입니다. " +
-               "질문에 맞는 언어(한글/영어)로 자연스럽게 답변해 주세요.";
+String prompt = "당신은 친근한 여행 도우미 챗봇입니다. 질문에 사용된 언어로 답변해 주세요!";
 ```
 
 ### 4. AI 응답 처리
@@ -111,39 +110,6 @@ gradlew bootRun
 ```
 
 ---
-
-## 📁 프로젝트 구조
-
-```
-프로젝트/
-├── backend/                    # Spring Boot 백엔드
-│   ├── src/main/java/
-│   │   └── com/example/demo/
-│   │       ├── controller/     # REST API 컨트롤러
-│   │       │   ├── ChatbotController.java
-│   │       │   └── HomeController.java
-│   │       ├── service/        # 비즈니스 로직
-│   │       │   └── ChatbotService.java
-│   │       └── dto/            # 데이터 전송 객체
-│   │           ├── ChatRequest.java
-│   │           └── ChatResponse.java
-│   └── src/main/resources/
-│       └── static/             # Vue 빌드 결과물
-├── frontend/                   # Vue.js 프론트엔드
-│   ├── src/
-│   │   ├── components/         # Vue 컴포넌트
-│   │   │   └── Chatbot.vue     # 메인 챗봇 컴포넌트
-│   │   ├── views/              # 페이지 뷰
-│   │   │   ├── HomeView.vue    # 홈 페이지
-│   │   │   └── ChatView.vue    # 챗봇 페이지
-│   │   ├── stores/             # Pinia 상태 관리
-│   │   │   └── chat.js         # 챗봇 상태 관리
-│   │   └── router/             # Vue Router
-│   │       └── index.js        # 라우터 설정
-│   └── dist/                   # 빌드 결과물
-└── database/                   # SQLite 데이터베이스
-    └── sqlite
-```
 
 ---
 
