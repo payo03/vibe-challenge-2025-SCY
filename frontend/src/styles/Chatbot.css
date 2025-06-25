@@ -173,6 +173,7 @@
 
 /* 입력 영역 */
 .chat-input {
+  width: 100%;
   padding: 0.7rem 1rem 1.2rem 1rem;
   background: rgba(255,255,255,0.95);
   border-top: 1px solid #eee;
@@ -182,6 +183,7 @@
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  flex-direction: row;
 }
 
 .message-input {
