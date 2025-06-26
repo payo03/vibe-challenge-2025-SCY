@@ -1,10 +1,11 @@
 package com.example.demo.service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
@@ -12,8 +13,10 @@ import org.springframework.web.client.RestTemplate;
 import com.example.demo.dto.ChatResponse;
 
 public class CommonService {
+
+    private static final Logger logger = LoggerFactory.getLogger(CommonService.class);
     
-    public static ChatResponse createChatResponse(String message, String userId) {
+    public static ChatResponse createChatResponse(String userId, String message) {
         ChatResponse response = new ChatResponse();
         response.setMessage(message);
         response.setUserId(userId);
@@ -33,23 +36,25 @@ public class CommonService {
         return response;
     }
 
+    public static Map<String, Object> buildRequestBody(String message) {
+        return Map.of(
+            "contents", List.of(createContent("user", message))
+        );
+    }
+
     public static Map<String, Object> buildRequestBody(String prompt, String message) {
-        Map<String, Object> requestBody = new HashMap<>();
-
-        Map<String, Object> systemInstruction = Map.of(
-            "role", "system",
-            "parts", List.of(Map.of("text", prompt))
+        return Map.of(
+            "systemInstruction", createContent("system", prompt),
+            "contents", List.of(createContent("user", message))
         );
+    }
 
-        Map<String, Object> userContent = Map.of(
-            "role", "user",
-            "parts", List.of(Map.of("text", message))
+    // 공통 구조 생성을 위한 private helper method
+    private static Map<String, Object> createContent(String role, String text) {
+        return Map.of(
+            "role", role,
+            "parts", List.of(Map.of("text", text))
         );
-
-        requestBody.put("systemInstruction", systemInstruction);
-        requestBody.put("contents", List.of(userContent));
-
-        return requestBody;
     }
 
     public static HttpHeaders buildRequestHeader(Map<String, Object> typeMap) {
@@ -83,7 +88,8 @@ public class CommonService {
             Map<String, Object> part = (Map<String, Object>) parts.get(0);
             String aiText = (String) part.get("text");
             if (aiText == null || aiText.trim().isEmpty()) throw new RuntimeException("Gemini에서 빈 응답을 받았습니다.");
-            
+            logger.info(aiText);
+
             return aiText;
         } else {
             throw new RuntimeException("Gemini API 응답 실패: " + response.getStatusCode());
