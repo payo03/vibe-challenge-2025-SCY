@@ -43,7 +43,7 @@ export const useChatStore = defineStore('chat', () => {
     try {
       const response = await axios.post('/api/chat', {
         message,
-        sessionId: userId,
+        userId,
       })
 
       messages.value[botMessageIndex] = {
