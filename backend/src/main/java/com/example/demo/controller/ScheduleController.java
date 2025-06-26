@@ -27,4 +27,5 @@ public class ScheduleController {
             if (lastTime.isBefore(now.minusMinutes(1))) manageService.finishUser(userId);
         }
     }
+    //
 }
