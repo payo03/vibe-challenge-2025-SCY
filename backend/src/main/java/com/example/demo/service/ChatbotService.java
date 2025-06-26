@@ -20,6 +20,7 @@ import java.util.Map;
 public class ChatbotService {
 
     private static final Logger logger = LoggerFactory.getLogger(ChatbotService.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
     
     @Autowired
     UserManageService manageService;
@@ -36,8 +37,6 @@ public class ChatbotService {
 
     @Value("${default.user}")
     private String defaultUser;
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public ChatResponse generateResponse(ChatRequest request) {
         logger.info("=== Gemini API 호출 시작 ===");
