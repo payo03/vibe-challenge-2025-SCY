@@ -41,11 +41,12 @@ public class ChatbotService {
     public ChatResponse generateResponse(ChatRequest request) {
         logger.info("=== Gemini API 호출 시작 ===");
         LocalDateTime now = LocalDateTime.now();
-        String prompt = "당신은 친근한 여행 도우미 챗봇입니다. user의 언어로 답변해 주세요!";
         String message = request.getMessage();
         String userId = request.getUserId();
-        System.out.println(userId);
 
+        String prompt = "1. Always responsd in the \"SAME LANGUAGE\" used by the user. If the user speaks in Korean, reply in Korean. Do not switch languages unless explicitly instructed.\n";
+        prompt += "2. You are a helpful travle assistant";
+        
         try {
             // API 호출
             // 1. 헤더

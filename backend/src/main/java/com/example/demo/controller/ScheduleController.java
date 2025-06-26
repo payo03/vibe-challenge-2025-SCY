@@ -15,13 +15,13 @@ public class ScheduleController {
     @Autowired
     UserManageService manageService;
     
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 120000)
     public void checkInactiveUsers() {
         LocalDateTime now = LocalDateTime.now();
 
-        for (Map.Entry<String, LocalDateTime> entry : manageService.getAllUsers().entrySet()) {
-            String userId = entry.getKey();
-            LocalDateTime lastTime = entry.getValue();
+        Map<String, LocalDateTime> userInfoMap = manageService.getAllUsers();
+        for (String userId : userInfoMap.keySet()) {
+            LocalDateTime lastTime = userInfoMap.get(userId);
 
             // 변수값 정리, 요약본 저장
             if (lastTime.isBefore(now.minusMinutes(1))) manageService.finishUser(userId);

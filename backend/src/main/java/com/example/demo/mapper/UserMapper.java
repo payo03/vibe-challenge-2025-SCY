@@ -12,5 +12,5 @@ public interface UserMapper {
     int countById(@Param("id") String id);
 
     // INSERT
-    int insertUser(UserRequest user);
+    int registerUser(UserRequest user);
 } 

@@ -20,12 +20,9 @@ public class MapperRepository {
     @Autowired
     private UserProfileLogMapper userProfileLogMapper;
 
+    // SELECT
     public boolean isIdDuplicated(String id) {
         return userMapper.countById(id) > 0;
-    }
-
-    public int registerUser(UserRequest user) {
-        return userMapper.insertUser(user);
     }
 
     public UserResponse loginUser(String id, String password) {
@@ -39,5 +36,14 @@ public class MapperRepository {
             .build();
 
         return userProfileLogMapper.getMaxSeq(log);
+    }
+
+    // INSERT
+    public int registerUser(UserRequest user) {
+        return userMapper.registerUser(user);
+    }
+
+    public int insertLog(UserProfileLog log) {
+        return userProfileLogMapper.insertLog(log);
     }
 } 

@@ -16,6 +16,8 @@ import org.springframework.web.client.RestTemplate;
 
 import com.example.demo.dto.UserProfileLog;
 import com.example.demo.repository.MapperRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.http.*;
 
@@ -65,11 +67,22 @@ public class UserManageService {
 
     private void summarize(String userId) {
         StringBuilder promptBuilder = new StringBuilder();
-        promptBuilder.append("지금까지 대화내용을 바탕으로 다음 3가지의 내용을 '정해진 양식'에 따라 답변해주세요\n");
-        promptBuilder.append("1. User의 여행성향은? 2. User의 나이대는? 3. User의 대화내용의 핵심 내용은?\n");
-        promptBuilder.append("답변양식은 다음과 같습니다.\n");
-        promptBuilder.append("여행성향 : [ex, 음식에 중점을 둔 활발형], 나이대 : [ex, 대략 20~30대], 핵심내용 : [ex, 3박 4일 여행일정을 계획중이며 금액이 차이나지 않는다면 해외를 고려중]\n");
-        promptBuilder.append("대화내용이 적어 답변이 불가능할경우 'X' 라고만 답하세요");
+        promptBuilder.append("지금까지의 대화 내용을 바탕으로 다음 3가지를 판단하여 **JSON 형식**으로만 답변해주세요.\n");
+        promptBuilder.append("(정확하지 않아도 추정 가능하면 작성)\n");
+        promptBuilder.append("1. User의 여행 성향\n");
+        promptBuilder.append("2. User의 나이대\n");
+        promptBuilder.append("3. 대화 내용의 핵심 요약\n\n");
+        
+        promptBuilder.append("💡 아래 형식(답변 샘플)에 **정확히 맞춰서 JSON으로만** 답변해주세요. 설명은 생략해주세요.\n\n");
+        
+        promptBuilder.append("{\n");
+        promptBuilder.append("  \"여행성향\": \"음식에 중점을 둔 활발형\",\n");
+        promptBuilder.append("  \"나이대\": \"대략 20~30대\",\n");
+        promptBuilder.append("  \"핵심내용\": \"3박 4일 여행일정을 계획 중이며, 금액이 차이나지 않는다면 해외도 고려 중\"\n");
+        promptBuilder.append("}\n\n");
+        
+        promptBuilder.append("✅ 만약 정보를 판단하기 어려운 경우에는 해당 항목 값을 \"X\"로 설정해주세요.");
+        
 
         String message = promptBuilder.toString();
         try {
@@ -88,11 +101,20 @@ public class UserManageService {
             String result = CommonService.callGeminiApi(restTemplate, headerMap, requestBody, endpointURL);
             Integer seq = mapperRepository.getMaxSeq(userId);
 
+            // JSON 파싱 (Jackson 이용)
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> resultMap = mapper.readValue(result, new TypeReference<Map<String, String>>() {});
+
             UserProfileLog profileLog = UserProfileLog.builder()
                 .yyyyMMdd(LocalDate.now())
                 .seq(seq)
                 .userId(userId)
+                .trait(resultMap.getOrDefault("여행성향", ""))
+                .ageGroup(resultMap.getOrDefault("나이대", ""))
+                .summarize(resultMap.getOrDefault("핵심내용", ""))
                 .build();
+            
+            mapperRepository.insertLog(profileLog);
         } catch (RuntimeException e) {
             logger.error("Runtime Exception: ", e);
 

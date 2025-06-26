@@ -9,5 +9,5 @@ public interface UserProfileLogMapper {
     int getMaxSeq(UserProfileLog log);
 
     // INSERT
-    int insertUser(UserProfileLog log);
+    int insertLog(UserProfileLog log);
 } 

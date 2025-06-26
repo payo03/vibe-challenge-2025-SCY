@@ -16,7 +16,7 @@
     </select>
 
     <!-- INSERT -->
-    <insert id="insertUser" parameterType="com.example.demo.dto.UserRequest">
+    <insert id="registerUser" parameterType="com.example.demo.dto.UserRequest">
         INSERT INTO user 
         (
             id, 
