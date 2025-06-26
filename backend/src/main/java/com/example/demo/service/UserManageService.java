@@ -7,12 +7,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserActiveService {
+public class UserManageService {
 
     private final Map<String, LocalDateTime> lastActivityMap = new ConcurrentHashMap<>();
 
     public void updateUserActivity(String userId, LocalDateTime time) {
-        System.out.println("HERE TO");
         lastActivityMap.put(userId, time);
     }
 
@@ -25,7 +24,15 @@ public class UserActiveService {
     }
 
     public void removeUser(String userId) {
-        System.out.println("HERE TO REMOVE");
         lastActivityMap.remove(userId);
+    }
+
+    public void summarize(String userId) {
+        
+    }
+
+    public void finishUser(String userId) {
+        this.removeUser(userId);
+        this.summarize(userId);
     }
 }

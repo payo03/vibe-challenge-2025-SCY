@@ -24,13 +24,16 @@ public class ChatbotService {
     private final RestTemplate restTemplate;
     
     @Autowired
-    UserActiveService userService;
+    UserManageService manageService;
 
     @Value("${gemini.api.key}")
     private String geminiApiKey;
 
     @Value("${gemini.api.url}")
     private String geminiApiURL;
+
+    @Value("${default.user}")
+    private String defaultUser;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -95,9 +98,9 @@ public class ChatbotService {
                 List<Object> parts = (java.util.List<Object>) content.get("parts");
                 Map<String, Object> part = (Map<String, Object>) parts.get(0);
                 String aiResponse = (String) part.get("text");
-                if (aiResponse == null || aiResponse.trim().isEmpty()) throw new RuntimeException("Gemini API에서 빈 응답을 받았습니다.");             
+                if (aiResponse == null || aiResponse.trim().isEmpty()) throw new RuntimeException("Gemini API에서 빈 응답을 받았습니다.");
                 // User값 시간체크
-                if (!"demo-user".equals(userId)) userService.updateUserActivity(userId, now);
+                if (!defaultUser.equals(userId)) manageService.updateUserActivity(userId, now);
                 
                 return createChatResponse(aiResponse, userId);
             } else {
