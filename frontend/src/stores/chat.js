@@ -15,17 +15,16 @@ export const useChatStore = defineStore('chat', () => {
   const error = ref(null)
 
   // 06-26 Logan Comment. userId key변경 필요해
-  async function sendMessage(message, userId) {
+  async function sendMessage(message, userId) {    
     if (!userId) userId = 'demo-user';
     if (!message.trim() || isLoading.value) return;
-    const userTimestamp = new Date();
 
     // 사용자 메시지 추가
     messages.value.push({
       text: message,
       isUser: true,
-      timestamp: userTimestamp,
-      status: 'done'
+      status: 'done',
+      timestamp: new Date()
     })
 
     // 봇 메시지 자리 표시자 추가 (pending)
@@ -34,7 +33,7 @@ export const useChatStore = defineStore('chat', () => {
       text: '',
       isUser: false,
       status: 'pending',
-      timestamp: userTimestamp
+      timestamp: new Date()
     })
 
     isLoading.value = true
@@ -43,7 +42,7 @@ export const useChatStore = defineStore('chat', () => {
     try {
       const response = await axios.post('/api/chat', {
         message,
-        sessionId: userId,
+        userId,
       })
 
       messages.value[botMessageIndex] = {
