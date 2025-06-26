@@ -9,25 +9,46 @@
     </div>
     
     <div class="features">
-      <div class="feature-card">
+      <div
+        class="feature-card clickable"
+        @click="handleFeatureClick('/chat')">
         <h3>🎯 맞춤형 추천</h3>
         <p>예산, 기간, 선호도에 따른 개인화된 여행지 추천</p>
       </div>
-      <div class="feature-card">
+
+      <div
+        class="feature-card clickable"
+        @click="handleFeatureClick('/chat')">
         <h3>📅 스마트 일정</h3>
         <p>최적의 여행 일정을 자동으로 생성</p>
       </div>
-      <div class="feature-card">
-        <h3>💬 자연스러운 대화</h3>
-        <p>친근하고 직관적인 챗봇 인터페이스</p>
-      </div>
     </div>
+    <AuthModal v-if="showLogin" mode="login" @close="showLogin = false" />
   </div>
 </template>
 
 <script setup>
-// HomeView 컴포넌트
+import { useUserStore } from '@/stores/user'
+import { useRouter } from 'vue-router'
+import { ref } from 'vue'
+import AuthModal from '@/components/AuthModal.vue'
+import '../styles/HomeView.css'
+
+const userStore = useUserStore()
+const router = useRouter()
+const showLogin = ref(false)
+
+function handleFeatureClick(path) {
+  if (userStore.isLoggedIn) {
+    router.push(path)
+  } else {
+    alert('로그인이 필요합니다.')
+    showLogin.value = true
+  }
+}
 </script>
+
+
 
 <style scoped>
 .home {

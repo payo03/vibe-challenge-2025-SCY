@@ -14,40 +14,51 @@ export const useChatStore = defineStore('chat', () => {
   const isLoading = ref(false)
   const error = ref(null)
 
-  async function sendMessage(message, options = {}) {
-    if (!message.trim() || isLoading.value) return
-    
-    const userTimestamp = new Date()
-    
+  async function sendMessage(message, userId) {
+    if (!userId) userId = 'demo-user';
+    if (!message.trim() || isLoading.value) return;
+    const userTimestamp = new Date();
+
     // 사용자 메시지 추가
-    messages.value.push({ 
-      text: message, 
-      isUser: true, 
-      timestamp: userTimestamp 
+    messages.value.push({
+      text: message,
+      isUser: true,
+      timestamp: userTimestamp,
+      status: 'done'
     })
-    
+
+    // 봇 메시지 자리 표시자 추가 (pending)
+    const botMessageIndex = messages.value.length
+    messages.value.push({
+      text: '',
+      isUser: false,
+      status: 'pending',
+      timestamp: userTimestamp
+    })
+
     isLoading.value = true
     error.value = null
-    
+
     try {
       const response = await axios.post('/api/chat', {
-        message: message,
-        sessionId: 'demo-user',
-        ...options
+        message,
+        sessionId: userId,
       })
-      
-      messages.value.push({ 
-        text: response.data.message, 
-        isUser: false, 
-        timestamp: new Date() 
-      })
+
+      messages.value[botMessageIndex] = {
+        text: response.data.message,
+        isUser: false,
+        status: 'done',
+        timestamp: new Date()
+      }
     } catch (err) {
       error.value = '메시지 전송 중 오류가 발생했습니다.'
-      messages.value.push({ 
-        text: '죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 
-        isUser: false, 
-        timestamp: new Date() 
-      })
+      messages.value[botMessageIndex] = {
+        text: '죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+        isUser: false,
+        status: 'done',
+        timestamp: new Date()
+      }
     } finally {
       isLoading.value = false
     }

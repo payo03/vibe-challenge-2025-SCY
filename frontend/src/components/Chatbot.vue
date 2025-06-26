@@ -21,15 +21,17 @@
 
     <!-- 메시지 영역 -->
     <div class="chat-messages" ref="messagesContainer">
-      <div 
-        v-for="(msg, idx) in chatStore.messages" 
+      <div v-for="(msg, idx) in chatStore.messages" 
         :key="idx" 
-        :class="['message', msg.isUser ? 'user-message' : 'bot-message']"
-      >
+        :class="['message', msg.isUser ? 'user-message' : 'bot-message']">
         <div class="message-bubble">
           <div class="message-avatar" v-if="!msg.isUser">🤖</div>
           <div class="message-content">
-            <p>{{ msg.text }}</p>
+            <!-- pending 상태일 때 애니메이션 점 -->
+            <p v-if="msg.status === 'pending'" class="typing-dots">…</p>
+            
+            <!-- 완료된 메시지일 때 마크다운 렌더링 -->
+            <div v-else v-html="renderMarkdown(msg.text)"></div>
           </div>
           <div class="message-avatar" v-if="msg.isUser">👤</div>
         </div>
@@ -45,12 +47,12 @@
     <!-- 입력 영역 -->
     <div class="chat-input">
       <form @submit.prevent="sendMessage" class="input-form">
-        <input 
-          v-model="input" 
-          placeholder="여행 관련 질문을 입력하세요..." 
+        <textarea
+          v-model="input"
           class="message-input"
-          :disabled="chatStore.isLoading"
-        />
+          placeholder="여행 관련 질문을 입력하세요..."
+          @keydown.enter.prevent="handleEnter">
+        </textarea>
         <button 
           type="submit" 
           class="send-button"
@@ -68,13 +70,12 @@
 import { ref, nextTick, onMounted, watch } from 'vue'
 import { useChatStore } from '../stores/chat'
 import '../styles/Chatbot.css'
+import MarkdownIt from 'markdown-it'
 
+const md = new MarkdownIt()
 const chatStore = useChatStore()
 const input = ref('')
 const messagesContainer = ref(null)
-
-// 기본 프롬프트
-const defaultPrompt = '당신은 친근한 여행 도우미 챗봇입니다. 질문에 맞는 언어(한글/영어)로 자연스럽게 답변해 주세요.'
 
 function formatTime(timestamp) {
   if (!timestamp) return ''
@@ -97,18 +98,27 @@ async function sendMessage() {
   if (!input.value.trim() || chatStore.isLoading) return
   const message = input.value
   input.value = ''
-  await chatStore.sendMessage(message, {
-    prompt: defaultPrompt,
-    model: 'gemini-2.0-flash',
-    maxTokens: 256,
-    temperature: 0.7
-  })
+  await chatStore.sendMessage(message)
   scrollToBottom()
 }
 
 function clearChat() {
   if (confirm('대화 기록을 모두 지우시겠습니까?')) {
     chatStore.clearMessages()
+  }
+}
+
+function renderMarkdown(text) {
+  return md.render(text)
+}
+
+function handleEnter(event) {
+  if (event.shiftKey) {
+    // Shift + Enter: 줄바꿈 추가
+    input.value += '\n'
+  } else {
+    // Enter: 메시지 전송
+    sendMessage()
   }
 }
 
