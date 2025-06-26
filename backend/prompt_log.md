@@ -138,3 +138,11 @@
   2. `callGeminiApi(restTemplate, url, requestBody)` 메서드를 만들어 API 호출을 별도로 분리함.
   3. `generateResponse` 함수에서는 로깅, 로직 흐름 유지, 예외 처리 등 핵심 로직만 담당하도록 정리함.
   4. `GeminiHelper`는 테스트 가능하고, 재사용 가능한 구조로 설계됨.
+
+- **요청:**
+  user_profile_log. yyyyMMdd 기준으로 seq의 최댓값을 자주 조회하기위한 DB Index DDL요청
+
+- **조치:**
+  1. `yyyyMMdd`는 조회 조건 (WHERE) 으로 자주 사용되므로 인덱스의 첫 번째 컬럼으로 설정
+  2. `seq`는 정렬 (ORDER BY seq DESC) 또는 최댓값 조회 (MAX(seq)) 에 쓰이므로 두 번째
+  3. `DESC` 지정은 옵티마이저가 내림차순 정렬된 인덱스를 바로 이용할 수 있도록 도와줍니다 (RDBMS에 따라 영향 있음, 아래 참고)
