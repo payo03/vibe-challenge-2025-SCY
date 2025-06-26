@@ -2,6 +2,9 @@ package com.example.demo.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 
@@ -15,4 +18,5 @@ public class UserResponse {
     
     private boolean success;
     private String message;
-} 
+    private List<UserProfileLog> profileLogs;
+}

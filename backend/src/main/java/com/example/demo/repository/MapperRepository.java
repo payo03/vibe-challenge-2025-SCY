@@ -7,6 +7,7 @@ import com.example.demo.mapper.UserMapper;
 import com.example.demo.mapper.UserProfileLogMapper;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -20,7 +21,11 @@ public class MapperRepository {
     @Autowired
     private UserProfileLogMapper userProfileLogMapper;
 
-    // SELECT
+    /* ---------------------------------------------------------------------- */
+    /* ------------------------------- SELECT ------------------------------- */
+    /* ---------------------------------------------------------------------- */
+
+    // UserMapper
     public boolean isIdDuplicated(String id) {
         return userMapper.countById(id) > 0;
     }
@@ -29,6 +34,7 @@ public class MapperRepository {
         return userMapper.loginUser(id, password);
     }
 
+    // UserProfileLogMapper
     public int getMaxSeq(String id) {
         UserProfileLog log = UserProfileLog.builder()
             .userId(id)
@@ -38,7 +44,15 @@ public class MapperRepository {
         return userProfileLogMapper.getMaxSeq(log);
     }
 
-    // INSERT
+    public List<UserProfileLog> selectLogList(String userId) {
+        return userProfileLogMapper.selectLogList(userId);
+    }
+
+    /* ---------------------------------------------------------------------- */
+    /* ------------------------------- INSERT ------------------------------- */
+    /* ---------------------------------------------------------------------- */
+
+    // UserMapper
     public int registerUser(UserRequest user) {
         return userMapper.registerUser(user);
     }

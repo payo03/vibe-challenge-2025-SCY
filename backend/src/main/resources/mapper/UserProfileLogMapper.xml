@@ -10,6 +10,13 @@
         AND yyyyMMdd = #{yyyyMMdd}
     </select>
 
+    <select id="selectLogList" parameterType="string" resultType="com.example.demo.dto.UserProfileLog">
+        SELECT yyyyMMdd, seq, user_id, trait, age_group, summarize
+        FROM user_profile_log
+        WHERE user_id = #{userId}
+        ORDER BY yyyyMMdd desc, seq DESC
+    </select>
+
     <!-- INSERT -->
     <insert id="insertLog" parameterType="com.example.demo.dto.UserProfileLog">
         INSERT INTO user_profile_log 

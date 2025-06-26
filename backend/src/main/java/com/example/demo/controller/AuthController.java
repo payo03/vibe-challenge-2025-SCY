@@ -1,9 +1,12 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.UserProfileLog;
 import com.example.demo.dto.UserRequest;
 import com.example.demo.dto.UserResponse;
 import com.example.demo.repository.MapperRepository;
 import com.example.demo.service.UserManageService;
+
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,12 +60,17 @@ public class AuthController {
     public ResponseEntity<UserResponse> login(@RequestBody UserRequest userRequest) {
         UserResponse dbUser = mapperRepository.loginUser(userRequest.getId(), userRequest.getPassword());
         if (dbUser != null && dbUser.getId() != null) {
+            // 1. 최근 대화의 요약본 SELECT, API Request
+            List<UserProfileLog> logList = mapperRepository.selectLogList(dbUser.getId());
+
+            // 2. Return
             return ResponseEntity.ok(
                 UserResponse.builder()
                     .id(dbUser.getId())
                     .name(dbUser.getName())
                     .success(true)
                     .message("로그인 성공")
+                    .profileLogs(logList)
                     .build()
             );
         } else {
