@@ -4,35 +4,39 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UserManageService {
-
+    
     private final Map<String, LocalDateTime> lastActivityMap = new ConcurrentHashMap<>();
 
-    public void updateUserActivity(String userId, LocalDateTime time) {
-        lastActivityMap.put(userId, time);
-    }
+    @Value("${default.user}")
+    private String defaultUser;
 
-    public LocalDateTime getLastActivity(String userId) {
-        return lastActivityMap.get(userId);
+    public void updateUserActivity(String userId, LocalDateTime time) {
+        if (!defaultUser.equals(userId)) lastActivityMap.put(userId, time);
     }
 
     public Map<String, LocalDateTime> getAllUsers() {
         return lastActivityMap;
     }
 
-    public void removeUser(String userId) {
+    public void finishUser(String userId) {
+
+        if(!defaultUser.equals(userId)) {
+            this.removeUser(userId);
+            this.summarize(userId);
+        }
+    }
+
+    // 내부함수
+    private void removeUser(String userId) {
         lastActivityMap.remove(userId);
     }
 
-    public void summarize(String userId) {
-        
-    }
+    private void summarize(String userId) {
 
-    public void finishUser(String userId) {
-        this.removeUser(userId);
-        this.summarize(userId);
     }
 }
