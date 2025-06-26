@@ -3,19 +3,24 @@ package com.example.demo.controller;
 import com.example.demo.dto.UserRequest;
 import com.example.demo.dto.UserResponse;
 import com.example.demo.repository.UserRepository;
-import com.example.demo.service.UserActiveService;
+import com.example.demo.service.UserManageService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    private final UserRepository userRepository;
+
+    @Value("${default.user}")
+    private String defaultUser;
 
     @Autowired
-    UserActiveService activeService;
+    UserManageService manageService;
+
+    private final UserRepository userRepository;
 
     public AuthController(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -76,8 +81,7 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestBody UserRequest userRequest) {
         String userId = userRequest.getId();
-        System.out.println("HERE");
-        activeService.removeUser(userId);
+        if(!defaultUser.equals(userId)) manageService.finishUser(userId);
         
         return ResponseEntity.ok().build();
     }
