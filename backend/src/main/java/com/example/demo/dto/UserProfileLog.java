@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -19,5 +18,4 @@ public class UserProfileLog {
     private String trait;
     private String ageGroup;
     private String summarize;
-    private LocalDateTime createdTime;
 }
