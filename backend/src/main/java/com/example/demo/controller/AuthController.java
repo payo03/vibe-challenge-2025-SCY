@@ -81,7 +81,7 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestBody UserRequest userRequest) {
         String userId = userRequest.getId();
-        if(!defaultUser.equals(userId)) manageService.finishUser(userId);
+        manageService.finishUser(userId);
         
         return ResponseEntity.ok().build();
     }
