@@ -69,8 +69,8 @@
 <script setup>
 import { ref, nextTick, onMounted, watch } from 'vue'
 import { useChatStore } from '../stores/chat'
-import '../styles/Chatbot.css'
 import MarkdownIt from 'markdown-it'
+import '../styles/Chatbot.css'
 
 const md = new MarkdownIt()
 const chatStore = useChatStore()
