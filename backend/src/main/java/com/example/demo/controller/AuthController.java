@@ -2,7 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.UserRequest;
 import com.example.demo.dto.UserResponse;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.MapperRepository;
 import com.example.demo.service.UserManageService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,15 +20,12 @@ public class AuthController {
     @Autowired
     UserManageService manageService;
 
-    private final UserRepository userRepository;
-
-    public AuthController(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    @Autowired
+    private MapperRepository mapperRepository;
 
     @PostMapping(value = "/register", produces = "application/json; charset=UTF-8")
     public ResponseEntity<UserResponse> register(@RequestBody UserRequest userRequest) {
-        if (userRepository.isIdDuplicated(userRequest.getId())) {
+        if (mapperRepository.isIdDuplicated(userRequest.getId())) {
             return ResponseEntity.ok(
                 UserResponse.builder()
                     .success(false)
@@ -36,7 +33,7 @@ public class AuthController {
                     .build()
             );
         }
-        int regResult = userRepository.registerUser(userRequest);
+        int regResult = mapperRepository.registerUser(userRequest);
         if (regResult > 0) {
             return ResponseEntity.ok(
                 UserResponse.builder()
@@ -58,7 +55,7 @@ public class AuthController {
 
     @PostMapping(value = "/login", produces = "application/json; charset=UTF-8")
     public ResponseEntity<UserResponse> login(@RequestBody UserRequest userRequest) {
-        UserResponse dbUser = userRepository.loginUser(userRequest.getId(), userRequest.getPassword());
+        UserResponse dbUser = mapperRepository.loginUser(userRequest.getId(), userRequest.getPassword());
         if (dbUser != null && dbUser.getId() != null) {
             return ResponseEntity.ok(
                 UserResponse.builder()

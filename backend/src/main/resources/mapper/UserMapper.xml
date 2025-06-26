@@ -2,14 +2,32 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.demo.mapper.UserMapper">
     
+    <!-- SELECT -->
     <select id="countById" parameterType="string" resultType="int">
-        SELECT COUNT(*) FROM user WHERE id = #{id}
+        SELECT COUNT(*) 
+        FROM user 
+        WHERE id = #{id}
     </select>
-    <insert id="insertUser" parameterType="com.example.demo.dto.UserRequest">
-        INSERT INTO user (id, name, password)
-        VALUES (#{id}, #{name}, #{password})
-    </insert>
+
     <select id="loginUser" resultType="com.example.demo.dto.UserResponse">
-        SELECT id, name FROM user WHERE id = #{id} AND password = #{password}
+        SELECT id, name 
+        FROM user 
+        WHERE id = #{id} AND password = #{password}
     </select>
+
+    <!-- INSERT -->
+    <insert id="registerUser" parameterType="com.example.demo.dto.UserRequest">
+        INSERT INTO user 
+        (
+            id, 
+            name, 
+            password
+        ) 
+        VALUES 
+        (
+            #{id}, 
+            #{name}, 
+            #{password}
+        )
+    </insert>
 </mapper> 
