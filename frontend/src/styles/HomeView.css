@@ -1,0 +1,18 @@
+.feature-card.clickable {
+  background: white;
+  color: #333;
+  cursor: pointer;
+  border: 2px solid #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s;
+}
+
+.feature-card.clickable:hover {
+  background: #f0f8ff; /* 약간 푸른색 강조 */
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.feature-card.clickable h3,
+.feature-card.clickable p {
+  color: #333;
+}

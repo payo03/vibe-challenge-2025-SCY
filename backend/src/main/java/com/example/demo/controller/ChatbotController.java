@@ -24,7 +24,7 @@ public class ChatbotController {
     public ResponseEntity<ChatResponse> sendMessage(@RequestBody ChatRequest request) {
         logger.info("=== 챗봇 API 호출됨 ===");
         logger.info("사용자 메시지: {}", request.getMessage());
-        logger.info("세션 ID: {}", request.getSessionId());
+        logger.info("유저 ID: {}", request.getUserId());
         
         try {
             ChatResponse response = chatbotService.generateResponse(request);
@@ -34,7 +34,7 @@ public class ChatbotController {
             logger.error("챗봇 API 오류 발생: ", e);
             ChatResponse errorResponse = new ChatResponse();
             errorResponse.setMessage("서버 오류가 발생했습니다.");
-            errorResponse.setSessionId(request.getSessionId());
+            errorResponse.setUserId(request.getUserId());
             errorResponse.setUserMessage(false);
             return ResponseEntity.internalServerError().body(errorResponse);
         }

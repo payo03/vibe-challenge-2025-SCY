@@ -12,9 +12,12 @@ const healthCheck = () => {
 
 // 전역 함수로 노출
 window.healthCheck = healthCheck
+
+import HeaderBar from './components/HeaderBar.vue'
 </script>
 
 <template>
+  <HeaderBar />
   <div class="app-container">
     <router-view />
   </div>
