@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -22,13 +21,13 @@ public class ChatbotController {
     }
 
     @PostMapping
-    public ResponseEntity<ChatResponse> sendMessage(@RequestBody ChatRequest request, HttpSession session) {
+    public ResponseEntity<ChatResponse> sendMessage(@RequestBody ChatRequest request) {
         logger.info("=== 챗봇 API 호출됨 ===");
         logger.info("사용자 메시지: {}", request.getMessage());
         logger.info("유저 ID: {}", request.getUserId());
         
         try {
-            ChatResponse response = chatbotService.generateResponse(request, session);
+            ChatResponse response = chatbotService.generateResponse(request);
             logger.info("AI 응답 생성 완료: {}", response.getMessage().substring(0, Math.min(50, response.getMessage().length())) + "...");
             return ResponseEntity.ok(response);
         } catch (Exception e) {

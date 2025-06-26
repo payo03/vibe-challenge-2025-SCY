@@ -14,6 +14,7 @@ export const useChatStore = defineStore('chat', () => {
   const isLoading = ref(false)
   const error = ref(null)
 
+  // 06-26 Logan Comment. userId key변경 필요해
   async function sendMessage(message, userId) {
     if (!userId) userId = 'demo-user';
     if (!message.trim() || isLoading.value) return;
