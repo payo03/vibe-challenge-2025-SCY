@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.config.LanguageDetectorConfig;
 import com.example.demo.dto.ChatRequest;
 import com.example.demo.dto.ChatResponse;
 import org.slf4j.Logger;
@@ -43,8 +44,8 @@ public class ChatbotService {
         LocalDateTime now = LocalDateTime.now();
         String message = request.getMessage();
         String userId = request.getUserId();
-
-        String prompt = "1. Always responsd in the \"SAME LANGUAGE\" used by the user. If the user speaks in Korean, reply in Korean. Do not switch languages unless explicitly instructed.\n";
+        String language = LanguageDetectorConfig.detectLanguage(message);
+        String prompt = "1. Answer in" + language + ".\n";
         prompt += "2. You are a helpful travle assistant";
         
         try {
