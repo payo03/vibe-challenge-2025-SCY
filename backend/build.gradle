@@ -28,6 +28,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-json'
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	implementation 'com.github.optimaize:language-detector:0.6'			// 언어 감지 라이브러리
 	
 	// Hugging Face API 클라이언트
 	implementation 'com.squareup.okhttp3:okhttp:4.12.0'
