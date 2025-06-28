@@ -30,8 +30,7 @@ public class UserManageService {
 
     @Value("${default.user}")
     private String defaultUser;
-
-    @Autowired
+    
     @Qualifier("defaultRestTemplate")
     RestTemplate restTemplate;
 

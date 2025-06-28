@@ -10,6 +10,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
+import com.example.demo.config.LanguageDetectorConfig;
 import com.example.demo.dto.ChatResponse;
 
 public class CommonService {
@@ -36,25 +37,25 @@ public class CommonService {
         return response;
     }
 
+    public static Map<String, Object> buildRequestBody(String message, String prompt) {
+        // Default Prompt 
+        String language = LanguageDetectorConfig.detectLanguage(message);
+        String defaultMessage = "Rule1. Answer in" + language + ".\n";
+        defaultMessage += "Rule2. You are a helpful travle assistant\n";
+        defaultMessage += prompt;   // 추가적인 프롬프트
+
+        message = defaultMessage + "\n" + message;
+        return Map.of(
+            "contents", List.of(
+                Map.of(
+                    "parts", List.of(Map.of("text", message))
+                )
+            )
+        );
+    }
+
     public static Map<String, Object> buildRequestBody(String message) {
-        return Map.of(
-            "contents", List.of(createContent("user", message))
-        );
-    }
-
-    public static Map<String, Object> buildRequestBody(String prompt, String message) {
-        return Map.of(
-            "systemInstruction", createContent("system", prompt),
-            "contents", List.of(createContent("user", message))
-        );
-    }
-
-    // 공통 구조 생성을 위한 private helper method
-    private static Map<String, Object> createContent(String role, String text) {
-        return Map.of(
-            "role", role,
-            "parts", List.of(Map.of("text", text))
-        );
+        return buildRequestBody(message, "");
     }
 
     public static HttpHeaders buildRequestHeader(Map<String, Object> typeMap) {
