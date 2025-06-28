@@ -44,9 +44,6 @@ public class ChatbotService {
         LocalDateTime now = LocalDateTime.now();
         String message = request.getMessage();
         String userId = request.getUserId();
-        String language = LanguageDetectorConfig.detectLanguage(message);
-        String prompt = "1. Answer in" + language + ".\n";
-        prompt += "2. You are a helpful travle assistant";
         
         try {
             // API 호출
@@ -55,7 +52,7 @@ public class ChatbotService {
             headerMap.put("Content-Type", MediaType.APPLICATION_JSON);
 
             // 2. Body / Prompt, Input값을 통한 RequestBody 생성
-            Map<String, Object> requestBody = CommonService.buildRequestBody(prompt, message);
+            Map<String, Object> requestBody = CommonService.buildRequestBody(message);
             
             try {
                 logger.info("Gemini API 요청 준비 완료\n");
