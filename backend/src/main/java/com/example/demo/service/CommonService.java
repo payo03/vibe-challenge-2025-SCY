@@ -40,11 +40,12 @@ public class CommonService {
     public static Map<String, Object> buildRequestBody(String message, String prompt) {
         // Default Prompt 
         String language = LanguageDetectorConfig.detectLanguage(message);
-        String defaultMessage = "Rule1. Answer in" + language + ".\n";
-        defaultMessage += "Rule2. You are a helpful travle assistant\n";
-        defaultMessage += prompt;   // 추가적인 프롬프트
+        String promptMessage = "Rule1. Answer in" + language + ".\n";
+        promptMessage += "Rule2. You are a helpful travle assistant\n";
+        // 사용자 지정 프롬프트
+        if(prompt != "") promptMessage = prompt;
 
-        message = defaultMessage + "\n" + message;
+        message = promptMessage + "\n" + message;
         return Map.of(
             "contents", List.of(
                 Map.of(
@@ -55,6 +56,7 @@ public class CommonService {
     }
 
     public static Map<String, Object> buildRequestBody(String message) {
+        // 06-28 주석. 이전대화내용 문맥 유지하기위해선 대화메시지를 세션에 저장해야함
         return buildRequestBody(message, "");
     }
 
@@ -81,6 +83,9 @@ public class CommonService {
         
         if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
             Map<String, Object> responseMap = response.getBody();
+            System.out.println("######################");
+            System.out.println(response.getBody());
+            System.out.println("######################");
 
             // Gemini API 응답 구조 파싱
             Map<String, Object> candidate = (Map<String, Object>) ((java.util.List<Object>) responseMap.get("candidates")).get(0);
