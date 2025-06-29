@@ -7,7 +7,10 @@ import com.example.demo.mapper.UserMapper;
 import com.example.demo.mapper.UserProfileLogMapper;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -44,8 +47,17 @@ public class MapperRepository {
         return userProfileLogMapper.getMaxSeq(log);
     }
 
-    public List<UserProfileLog> selectLogList(String userId) {
-        return userProfileLogMapper.selectLogList(userId);
+    public Map<LocalDate, List<UserProfileLog>> selectLogList(String userId) {
+        Map<LocalDate, List<UserProfileLog>> logMap = new HashMap<LocalDate, List<UserProfileLog>>();
+
+        List<UserProfileLog> logList = userProfileLogMapper.selectLogList(userId);
+        for (UserProfileLog log : logList) {
+            LocalDate key = log.getYyyyMMdd();
+
+            logMap.computeIfAbsent(key, list -> new ArrayList<>()).add(log);
+        }
+
+        return logMap;
     }
 
     /* ---------------------------------------------------------------------- */
