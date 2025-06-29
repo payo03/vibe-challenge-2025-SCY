@@ -127,3 +127,22 @@
   1. 기존에는 HttpSession에 단일 키로 값을 저장했으나, 여러 유저가 동시에 사용할 경우 데이터가 섞일 수 있음.
   2. Map<String, Map<String, Object>> 구조로 userId별로 독립적인 세션 데이터 관리가 가능해짐.
   3. 세션 내에서 userId별로 데이터 분리/초기화/조회가 용이해져, 멀티유저 환경에서 안전하게 동작할 수 있음.
+
+- **요청:**
+  ChatbotService의 generateResponse 함수가 너무 많은 책임을 지고 있으므로, 아래와 같이 모듈화 및 리팩토링 요청
+  1. Gemini API 요청 본문 생성 로직 분리
+  2. Gemini API 호출 로직 분리
+
+- **조치:**
+  1. `GeminiHelper` 유틸 클래스를 생성하여, `buildRequestBody(prompt, message)` 메서드로 요청 본문 생성을 모듈화함.
+  2. `callGeminiApi(restTemplate, url, requestBody)` 메서드를 만들어 API 호출을 별도로 분리함.
+  3. `generateResponse` 함수에서는 로깅, 로직 흐름 유지, 예외 처리 등 핵심 로직만 담당하도록 정리함.
+  4. `GeminiHelper`는 테스트 가능하고, 재사용 가능한 구조로 설계됨.
+
+- **요청:**
+  user_profile_log. yyyyMMdd 기준으로 seq의 최댓값을 자주 조회하기위한 DB Index DDL요청
+
+- **조치:**
+  1. `yyyyMMdd`는 조회 조건 (WHERE) 으로 자주 사용되므로 인덱스의 첫 번째 컬럼으로 설정
+  2. `seq`는 정렬 (ORDER BY seq DESC) 또는 최댓값 조회 (MAX(seq)) 에 쓰이므로 두 번째
+  3. `DESC` 지정은 옵티마이저가 내림차순 정렬된 인덱스를 바로 이용할 수 있도록 도와줍니다 (RDBMS에 따라 영향 있음, 아래 참고)

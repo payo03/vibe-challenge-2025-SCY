@@ -1,8 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { useUserStore } from './user'
 import axios from 'axios'
 
 export const useChatStore = defineStore('chat', () => {
+  const isLoading = ref(false)
+  const error = ref(null)
   const messages = ref([
     { 
       text: '안녕하세요! 여행 도우미 챗봇입니다. 🗺️\n\n어떤 여행을 계획하고 계신가요?\n• 여행지 추천\n• 일정 계획\n• 예산 안내\n• 여행 팁\n\n무엇이든 물어보세요!', 
@@ -10,39 +13,37 @@ export const useChatStore = defineStore('chat', () => {
       timestamp: new Date()
     }
   ])
-  
-  const isLoading = ref(false)
-  const error = ref(null)
 
-  async function sendMessage(message, userId) {
-    if (!userId) userId = 'demo-user';
+  async function sendMessage(message) {
     if (!message.trim() || isLoading.value) return;
-    const userTimestamp = new Date();
+    isLoading.value = true
+    error.value = null
 
-    // 사용자 메시지 추가
+    const userStore = useUserStore()
+    const userId = userStore.user?.id || 'demo-user'
+
+    // 사용자 메시지
     messages.value.push({
       text: message,
       isUser: true,
-      timestamp: userTimestamp,
-      status: 'done'
+      status: 'done',
+      timestamp: new Date()
     })
-
-    // 봇 메시지 자리 표시자 추가 (pending)
     const botMessageIndex = messages.value.length
+
+    // 봇 메시지 (pending)
     messages.value.push({
       text: '',
       isUser: false,
       status: 'pending',
-      timestamp: userTimestamp
+      timestamp: new Date()
     })
 
-    isLoading.value = true
-    error.value = null
-
+    alert(userId);
     try {
       const response = await axios.post('/api/chat', {
         message,
-        sessionId: userId,
+        userId,
       })
 
       messages.value[botMessageIndex] = {

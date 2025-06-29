@@ -1,23 +1,41 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.UserProfileLog;
 import com.example.demo.dto.UserRequest;
 import com.example.demo.dto.UserResponse;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.MapperRepository;
+import com.example.demo.service.CommonService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    private final UserRepository userRepository;
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public AuthController(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    @Value("${default.user}")
+    private String defaultUser;
+
+    @Autowired
+    CommonService commonService;
+
+    @Autowired
+    private MapperRepository mapperRepository;
 
     @PostMapping(value = "/register", produces = "application/json; charset=UTF-8")
     public ResponseEntity<UserResponse> register(@RequestBody UserRequest userRequest) {
-        if (userRepository.isIdDuplicated(userRequest.getId())) {
+        if (mapperRepository.isIdDuplicated(userRequest.getId())) {
             return ResponseEntity.ok(
                 UserResponse.builder()
                     .success(false)
@@ -25,7 +43,7 @@ public class AuthController {
                     .build()
             );
         }
-        int regResult = userRepository.registerUser(userRequest);
+        int regResult = mapperRepository.registerUser(userRequest);
         if (regResult > 0) {
             return ResponseEntity.ok(
                 UserResponse.builder()
@@ -47,14 +65,27 @@ public class AuthController {
 
     @PostMapping(value = "/login", produces = "application/json; charset=UTF-8")
     public ResponseEntity<UserResponse> login(@RequestBody UserRequest userRequest) {
-        UserResponse dbUser = userRepository.loginUser(userRequest.getId(), userRequest.getPassword());
+        UserResponse dbUser = mapperRepository.loginUser(userRequest.getId(), userRequest.getPassword());
         if (dbUser != null && dbUser.getId() != null) {
+            // 1. 최근 대화의 요약본 SELECT, API Request
+            Map<LocalDate, List<UserProfileLog>> profileLogMap = mapperRepository.selectLogList(dbUser.getId());
+
+            try {
+                logger.info("###################### User Log ######################\n");
+                logger.info("profileLogMap : {}", profileLogMap);
+                logger.info("###################### User Log ######################\n");
+            } catch (Exception e) {
+                logger.warn("Failed to Load", e);
+            }
+
+            // 2. Return
             return ResponseEntity.ok(
                 UserResponse.builder()
                     .id(dbUser.getId())
                     .name(dbUser.getName())
                     .success(true)
                     .message("로그인 성공")
+                    .profileLogMap(profileLogMap)
                     .build()
             );
         } else {
@@ -65,5 +96,13 @@ public class AuthController {
                     .build()
             );
         }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestBody UserRequest userRequest) {
+        String userId = userRequest.getId();
+        commonService.finishUser(userId);
+        
+        return ResponseEntity.ok().build();
     }
 } 
