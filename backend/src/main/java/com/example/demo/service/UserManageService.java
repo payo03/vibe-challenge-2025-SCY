@@ -14,10 +14,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.example.demo.config.TextExctractConfig;
 import com.example.demo.dto.UserProfileLog;
 import com.example.demo.repository.MapperRepository;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.http.*;
 
@@ -31,6 +30,7 @@ public class UserManageService {
     @Value("${default.user}")
     private String defaultUser;
     
+    @Autowired
     @Qualifier("defaultRestTemplate")
     RestTemplate restTemplate;
 
@@ -66,21 +66,22 @@ public class UserManageService {
 
     private void summarize(String userId) {
         StringBuilder promptBuilder = new StringBuilder();
-        promptBuilder.append("지금까지의 대화 내용을 바탕으로 다음 3가지를 판단하여 **JSON 형식**으로만 답변해주세요.\n");
-        promptBuilder.append("(정확하지 않아도 추정 가능하면 작성)\n");
-        promptBuilder.append("1. User의 여행 성향\n");
-        promptBuilder.append("2. User의 나이대\n");
-        promptBuilder.append("3. 대화 내용의 핵심 요약\n\n");
+        // 내용 요약본 생성
+        promptBuilder.append("Based on the conversation so far, please judge the following three points and answer only in \"JSON format\".\n");
+        promptBuilder.append("(If it is not exact, please write it down if you can estimate it)\n");
+        promptBuilder.append("1. User's travel tendencies\n");
+        promptBuilder.append("2. User's age\n");
+        promptBuilder.append("3. Summary of the main points of the conversation\n\n");
         
-        promptBuilder.append("💡 아래 형식(답변 샘플)에 **정확히 맞춰서 JSON으로만** 답변해주세요. 설명은 생략해주세요.\n\n");
+        promptBuilder.append("Here is the JSON format you need to respond to:\n\n");
         
         promptBuilder.append("{\n");
-        promptBuilder.append("  \"여행성향\": \"음식에 중점을 둔 활발형\",\n");
-        promptBuilder.append("  \"나이대\": \"대략 20~30대\",\n");
-        promptBuilder.append("  \"핵심내용\": \"3박 4일 여행일정을 계획 중이며, 금액이 차이나지 않는다면 해외도 고려 중\"\n");
+        promptBuilder.append("  \"Travel tendency\": \"[ANSWER or X]\",\n");
+        promptBuilder.append("  \"Age\": \"[ANSWER or X]\",\n");
+        promptBuilder.append("  \"Key content\": \"[ANSWER or X]\"\n");
         promptBuilder.append("}\n\n");
         
-        promptBuilder.append("✅ 만약 정보를 판단하기 어려운 경우에는 해당 항목 값을 \"X\"로 설정해주세요.");
+        promptBuilder.append("If you have difficulty determining the information, please set the value of the corresponding item to \"X\".");
         
 
         String message = promptBuilder.toString();
@@ -100,17 +101,16 @@ public class UserManageService {
             String result = CommonService.callGeminiApi(restTemplate, headerMap, requestBody, endpointURL);
             Integer seq = mapperRepository.getMaxSeq(userId);
 
-            // JSON 파싱 (Jackson 이용)
-            ObjectMapper mapper = new ObjectMapper();
-            Map<String, String> resultMap = mapper.readValue(result, new TypeReference<Map<String, String>>() {});
+            // JSON 파싱
+            Map<String, String> parsedMap = TextExctractConfig.parseSimpleJsonLikeString(result);
 
             UserProfileLog profileLog = UserProfileLog.builder()
                 .yyyyMMdd(LocalDate.now())
                 .seq(seq)
                 .userId(userId)
-                .trait(resultMap.getOrDefault("여행성향", ""))
-                .ageGroup(resultMap.getOrDefault("나이대", ""))
-                .summarize(resultMap.getOrDefault("핵심내용", ""))
+                .trait(parsedMap.getOrDefault("Travel tendency", ""))
+                .ageGroup(parsedMap.getOrDefault("Age", ""))
+                .summarize(parsedMap.getOrDefault("Key content", ""))
                 .build();
             
             mapperRepository.insertLog(profileLog);
