@@ -4,10 +4,15 @@ import com.example.demo.dto.UserProfileLog;
 import com.example.demo.dto.UserRequest;
 import com.example.demo.dto.UserResponse;
 import com.example.demo.repository.MapperRepository;
-import com.example.demo.service.UserManageService;
+import com.example.demo.service.CommonService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +21,14 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${default.user}")
     private String defaultUser;
 
     @Autowired
-    UserManageService manageService;
+    CommonService commonService;
 
     @Autowired
     private MapperRepository mapperRepository;
@@ -61,7 +68,15 @@ public class AuthController {
         UserResponse dbUser = mapperRepository.loginUser(userRequest.getId(), userRequest.getPassword());
         if (dbUser != null && dbUser.getId() != null) {
             // 1. 최근 대화의 요약본 SELECT, API Request
-            List<UserProfileLog> logList = mapperRepository.selectLogList(dbUser.getId());
+            Map<LocalDate, List<UserProfileLog>> profileLogMap = mapperRepository.selectLogList(dbUser.getId());
+
+            try {
+                logger.info("###################### User Log ######################\n");
+                logger.info("profileLogMap : {}", profileLogMap);
+                logger.info("###################### User Log ######################\n");
+            } catch (Exception e) {
+                logger.warn("Failed to Load", e);
+            }
 
             // 2. Return
             return ResponseEntity.ok(
@@ -70,7 +85,7 @@ public class AuthController {
                     .name(dbUser.getName())
                     .success(true)
                     .message("로그인 성공")
-                    .profileLogs(logList)
+                    .profileLogMap(profileLogMap)
                     .build()
             );
         } else {
@@ -86,7 +101,7 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestBody UserRequest userRequest) {
         String userId = userRequest.getId();
-        manageService.finishUser(userId);
+        commonService.finishUser(userId);
         
         return ResponseEntity.ok().build();
     }
