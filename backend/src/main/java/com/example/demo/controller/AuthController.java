@@ -5,7 +5,6 @@ import com.example.demo.dto.UserRequest;
 import com.example.demo.dto.UserResponse;
 import com.example.demo.repository.MapperRepository;
 import com.example.demo.service.CommonService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${default.user}")
     private String defaultUser;
