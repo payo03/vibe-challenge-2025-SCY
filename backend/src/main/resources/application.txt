@@ -1,0 +1,10 @@
+# SQLite 데이터베이스 설정
+spring.datasource.url=jdbc:sqlite:database/SQLite.db
+spring.datasource.driver-class-name=org.sqlite.JDBC
+
+# MyBatis 설정
+mybatis.mapper-locations=classpath:mapper/*.xml
+mybatis.type-aliases-package=com.example.demo.dto
+mybatis.configuration.map-underscore-to-camel-case=true
+
+default.user=demo-user

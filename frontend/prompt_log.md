@@ -22,3 +22,24 @@
   frontend/src/styles/ 폴더를 만들고, Chatbot.vue, AuthModal.vue 등 주요 컴포넌트의 스타일을 각각 Chatbot.css, AuthModal.css 등 별도 파일로 분리하여 관리할 수 있도록 구조와 적용 방법을 안내함. 실제로도 코드 적용을 진행함.
 
 ---
+
+
+- **요청:**
+  로그인시, 로그아웃시 LocalStorage를 사용하고 로그인유저에 대한 인증을 유지-삭제해줘
+- **조치:**
+  로그인 성공 시 사용자 정보를 localStorage에 저장해 새로고침 후에도 유지
+  로그아웃 시 서버에 호출하고, localStorage에서 삭제
+  앱 초기 실행 시 restoreSession()으로 상태 복원
+
+---
+
+
+- **요청:**
+  로그인, 로그아웃시 대화내용을 초기화해줘야해
+- **조치:**
+  로그인할 때 justLoggedIn 플래그를 true로 세팅해서 로그인 신호를 발생
+  chatStore에서 이 신호를 감지해 대화 초기화 함수 호출 후 justLoggedIn 플래그를 false로 초기화
+  앱 시작 시 세션 복원 시에도 로그인 신호 발생해서 자동 초기화 가능
+  ChatBot.vue에서는 별도 조치 없이 messages가 바뀌는 대로 렌더링됨
+
+---
