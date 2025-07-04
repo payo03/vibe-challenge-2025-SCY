@@ -3,16 +3,16 @@
     <!-- 헤더 -->
     <div class="chat-header">
       <div class="header-content">
-        <div class="bot-avatar">🤖</div>
+        <div class="bot-avatar">{{ BOT_AVATAR }}</div>
         <div class="header-text">
           <h3>여행 도우미</h3>
           <p>AI 여행 상담사</p>
         </div>
         <div class="header-actions">
-          <button @click="clearChat" class="clear-button" title="대화 초기화">
+          <button @click="clearChat" class="clear-button" :title="BUTTON_CLEAR_TITLE">
             🔄
           </button>
-          <router-link to="/" class="home-button" title="홈으로">
+          <router-link to="/" class="home-button" :title="BUTTON_HOME_TITLE">
             🏠
           </router-link>
         </div>
@@ -25,7 +25,7 @@
         :key="idx" 
         :class="['message', msg.isUser ? 'user-message' : 'bot-message']">
         <div class="message-bubble">
-          <div class="message-avatar" v-if="!msg.isUser">🤖</div>
+          <div class="message-avatar" v-if="!msg.isUser">{{ BOT_AVATAR }}</div>
           <div class="message-content">
             <!-- pending 상태일 때 애니메이션 점 -->
             <p v-if="msg.status === 'pending'" class="typing-dots">…</p>
@@ -33,7 +33,7 @@
             <!-- 완료된 메시지일 때 마크다운 렌더링 -->
             <div v-else v-html="renderMarkdown(msg.text)"></div>
           </div>
-          <div class="message-avatar" v-if="msg.isUser">👤</div>
+          <div class="message-avatar" v-if="msg.isUser">{{ USER_AVATAR }}</div>
         </div>
         <div class="message-time">{{ formatTime(msg.timestamp) }}</div>
       </div>
@@ -72,6 +72,14 @@ import { useChatStore } from '../stores/chat'
 import MarkdownIt from 'markdown-it'
 import mila from 'markdown-it-link-attributes'
 import '../styles/Chatbot.css'
+// 상수 import
+import {
+  CONFIRM_CLEAR_CHAT,
+  BUTTON_CLEAR_TITLE,
+  BUTTON_HOME_TITLE,
+  BOT_AVATAR,
+  USER_AVATAR
+} from '../constants/constant'
 
 const md = new MarkdownIt({
   html: true,
@@ -113,7 +121,7 @@ async function sendMessage() {
 }
 
 function clearChat() {
-  if (confirm('대화 기록을 모두 지우시겠습니까?')) {
+  if (confirm(CONFIRM_CLEAR_CHAT)) {
     chatStore.clearMessages()
   }
 }
