@@ -21,9 +21,6 @@ public class ChatbotService {
 
     private static final Logger logger = LoggerFactory.getLogger(ChatbotService.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    
-    // 상수 선언
-    private static final String ENDPOINT_FORMAT = "%s?key=%s";
 
     private final CommonService commonService;
     private final RestTemplate restTemplate;
@@ -66,7 +63,7 @@ public class ChatbotService {
             }
             
             // 3. Endpoint URL
-            String endpointURL = String.format(ENDPOINT_FORMAT, geminiApiURL, geminiApiKey);
+            String endpointURL = String.format(CommonService.ENDPOINT_FORMAT, geminiApiURL, geminiApiKey);
             String result = commonService.callGeminiApi(restTemplate, headerMap, requestBody, endpointURL);
 
             // 4. 대화내용 저장
@@ -108,8 +105,8 @@ public class ChatbotService {
                 logger.warn("Failed to pretty print JSON", e);
             }
             
-            // 3. Endpoint URL
-            String endpointURL = String.format(ENDPOINT_FORMAT, geminiApiURL, geminiApiKey);
+            // 3. Call Gemini
+            String endpointURL = String.format(CommonService.ENDPOINT_FORMAT, geminiApiURL, geminiApiKey);
             String result = commonService.callGeminiApi(restTemplate, headerMap, requestBody, endpointURL);
 
             // 4. 대화내용 저장
