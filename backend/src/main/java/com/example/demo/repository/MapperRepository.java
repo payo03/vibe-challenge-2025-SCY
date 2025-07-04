@@ -60,6 +60,22 @@ public class MapperRepository {
         return logMap;
     }
 
+    // 최신 로그 1건 반환 (yyyyMMdd, seq 내림차순)
+    public UserProfileLog getLatestLog(String userId) {
+        List<UserProfileLog> logList = userProfileLogMapper.selectLogList(userId);  // 모듈함수 재사용
+        if (logList == null || logList.isEmpty()) return null;
+
+        // yyyyMMdd, seq 내림차순 정렬 후 첫 번째 반환
+        return logList.stream()
+            .sorted((a, b) -> {
+                int dateCompare = b.getYyyyMMdd().compareTo(a.getYyyyMMdd());
+                if (dateCompare != 0) return dateCompare;
+                return Integer.compare(b.getSeq(), a.getSeq());
+            })
+            .findFirst()
+            .orElse(null);
+    }
+
     /* ---------------------------------------------------------------------- */
     /* ------------------------------- INSERT ------------------------------- */
     /* ---------------------------------------------------------------------- */
