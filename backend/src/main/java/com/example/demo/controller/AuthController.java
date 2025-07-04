@@ -1,10 +1,12 @@
 package com.example.demo.controller;
 
 import com.example.demo.config.HeaderTypeList;
+import com.example.demo.dto.ChatResponse;
 import com.example.demo.dto.UserProfileLog;
 import com.example.demo.dto.UserRequest;
 import com.example.demo.dto.UserResponse;
 import com.example.demo.repository.MapperRepository;
+import com.example.demo.service.ChatbotService;
 import com.example.demo.service.CommonService;
 
 import java.time.LocalDate;
@@ -36,11 +38,13 @@ public class AuthController {
     private String defaultUser;
 
     private final CommonService commonService;
+    private final ChatbotService chatbotService;
     private final MapperRepository mapperRepository;
 
     // 생성자 주입
-    public AuthController(CommonService commonService, MapperRepository mapperRepository) {
+    public AuthController(CommonService commonService, ChatbotService chatbotService, MapperRepository mapperRepository) {
         this.commonService = commonService;
+        this.chatbotService = chatbotService;
         this.mapperRepository = mapperRepository;
     }
 
@@ -115,4 +119,14 @@ public class AuthController {
         
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/summary")
+    public ResponseEntity<ChatResponse> getLastLogSummary(@RequestParam String userId) {
+        UserProfileLog lastLog = mapperRepository.getLatestLog(userId);
+        if (lastLog == null) return ResponseEntity.ok(null);
+
+        ChatResponse response = chatbotService.callLogSummary(userId, lastLog);
+        return ResponseEntity.ok(response);
+    }
+
 } 
