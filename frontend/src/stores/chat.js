@@ -23,13 +23,37 @@ export const useChatStore = defineStore('chat', () => {
 
   const userStore = useUserStore()
 
-  // justLoggedIn 플래그 감지하여 대화 기록 초기화
-  watch(() => userStore.justLoggedIn, (newVal) => {
+  // justLoggedIn 플래그 감지하여 대화 기록 초기화 및 Gemini 요약/질문 메시지 fetch
+  watch(() => userStore.justLoggedIn, async (newVal) => {
     if (newVal) {
       clearMessages()
+      await fetchGeminiWelcomeMessage(userStore.user?.id)
       userStore.resetLoginFlag() // 플래그 초기화
     }
   })
+
+  // Gemini 요약/질문 메시지 fetch 및 messages 갱신
+  async function fetchGeminiWelcomeMessage(userId) {
+    if (!userId) return
+    try {
+      const { data } = await axios.get(`/api/auth/summary?userId=${userId}`)
+      messages.value = [
+        {
+          text: data.summary || INIT_BOT_MESSAGE,
+          isUser: false,
+          timestamp: new Date()
+        }
+      ]
+    } catch (e) {
+      messages.value = [
+        {
+          text: INIT_BOT_MESSAGE,
+          isUser: false,
+          timestamp: new Date()
+        }
+      ]
+    }
+  }
 
   async function sendMessage(message) {
     if (!message.trim() || isLoading.value) return;
@@ -96,6 +120,7 @@ export const useChatStore = defineStore('chat', () => {
     isLoading,
     error,
     sendMessage,
-    clearMessages
+    clearMessages,
+    fetchGeminiWelcomeMessage
   }
 })

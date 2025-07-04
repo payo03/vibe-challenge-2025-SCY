@@ -31,6 +31,9 @@ public class CommonService {
     private static final Logger logger = LoggerFactory.getLogger(CommonService.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
+    public static final String KEY_QUESTION = "question";
+    public static final String KEY_ANSWER = "answer";
+
     /*  Question-Answer, 활동시간 기록 맵
         1Level : Key : UserId[String], Value: Info[Object] (lastActiveTime, question, answer)
         2Level
@@ -140,7 +143,8 @@ public class CommonService {
         // 4. 전체 request body 반환
         return Map.of("contents", contentsList);
     }
-    public Map<String, Object> buildRequestBody(String userId, String message) { return buildRequestBody(userId, message, null); }
+
+    public Map<String, Object> buildRequestBody(String userId, String message)      { return buildRequestBody(userId, message, null); }
 
     /* ------------------------------------------------------------------------------------ */
     /* ------------------------------------- Call API ------------------------------------- */
@@ -187,8 +191,8 @@ public class CommonService {
     /* ------------------------------------------------------------------------------------ */
     @SuppressWarnings("unchecked")
     public void logHistory(String userId, Map<String, Object> inputMap) {
-        String question = String.valueOf(inputMap.get("question"));
-        String answer = String.valueOf(inputMap.get("answer"));
+        String question = String.valueOf(inputMap.get(KEY_QUESTION));
+        String answer = String.valueOf(inputMap.get(KEY_ANSWER));
         LocalDateTime time = LocalDateTime.now();
 
         Map<String, Object> userObject = userInfoMap.containsKey(userId)
@@ -238,9 +242,11 @@ public class CommonService {
         return userInfoMap;
     }
 
-    /* ------------------------------------- 내부함수 ------------------------------------- */
+    /* ------------------------------------------------------------------------------------ */
+    /* -------------------------------------- Prompt -------------------------------------- */
+    /* ------------------------------------------------------------------------------------ */
     // 요약본 Prompt 생성
-    private String createSummaryPrompt() {
+    public String createSummaryPrompt() {
         StringBuilder promptBuilder = new StringBuilder();
         promptBuilder.append("Based on the conversation so far, please judge the following three points and answer only in \"JSON format\".\n");
         promptBuilder.append("(If it is not exact, please write it down if you can estimate it)\n");
@@ -260,16 +266,31 @@ public class CommonService {
         return promptBuilder.toString();
     }
 
-    private String createDefaultPrompt(String language) {
+    // Default Prompt 생성
+    public String createDefaultPrompt(String language) {
         StringBuilder promptBuilder = new StringBuilder();
         promptBuilder.append("Rule1. Answer in " + language + ".\n")
                     .append("Rule2. You are a helpful travel assistant.\n")
                     .append("Rule3. The previous conversation is for reference only. Do not repeat or rephrase previous messages.\n")
-                    .append("Rule4. Respond only to the most recent message from the user.\n");
+                    .append("Rule4. Respond only to the most recent message from the user.\n")
+                    .append("Rule5. If the question is not related to travel, humorously say you cannot answer.\n");
 
         return promptBuilder.toString();
     }
 
+    // 요약본 Prompt 질문 생성
+    public String buildLogSummary(UserProfileLog lastLog) {
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append("Information.Travel tendency: " + lastLog.getTrait() + ".\n")
+                    .append("Age: " + lastLog.getAgeGroup() + ".\n")
+                    .append("Conversation Summary: " + lastLog.getSummarize() + "\n")
+                    .append("Based on the information, ask the first question of today's conversation");
+
+        return promptBuilder.toString();
+    }
+
+
+    /* ------------------------------------- 내부함수 ------------------------------------- */
     // User 정보 제거
     private void removeUser(String userId) {
         userInfoMap.remove(userId);
@@ -319,4 +340,5 @@ public class CommonService {
 
         }
     }
+
 }
