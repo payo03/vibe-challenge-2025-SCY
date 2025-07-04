@@ -86,6 +86,20 @@
   gap: 0.7rem;
 }
 
+.chat-messages table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 8px 0;
+}
+.chat-messages th, .chat-messages td {
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  text-align: left;
+}
+.chat-messages th {
+  background: #f5f5f5;
+}
+
 .message {
   display: flex;
   flex-direction: column;
