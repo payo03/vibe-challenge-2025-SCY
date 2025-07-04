@@ -70,9 +70,19 @@
 import { ref, nextTick, onMounted, watch } from 'vue'
 import { useChatStore } from '../stores/chat'
 import MarkdownIt from 'markdown-it'
+import mila from 'markdown-it-link-attributes'
 import '../styles/Chatbot.css'
 
-const md = new MarkdownIt()
+const md = new MarkdownIt({
+  html: true,
+  linkify: true,
+  typographer: true,
+}).use(mila, {
+  attrs: {
+    target: '_blank',
+    rel: 'noopener'
+  }
+});
 const chatStore = useChatStore()
 const input = ref('')
 const messagesContainer = ref(null)

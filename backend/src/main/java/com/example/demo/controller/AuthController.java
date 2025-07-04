@@ -21,16 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
-
-    private static final String REGISTER_URL = "/register";
-    private static final String LOGIN_URL = "/login";
-    private static final String LOGOUT_URL = "/logout";
-
-    private static final String MSG_ID_DUPLICATED = "가입한 이력이 있습니다.";
-    private static final String MSG_REGISTER_SUCCESS = "회원가입 성공";
-    private static final String MSG_REGISTER_FAIL = "회원가입 실패";
-    private static final String MSG_LOGIN_SUCCESS = "로그인 성공";
-    private static final String MSG_LOGIN_FAIL = "아이디 또는 비밀번호가 올바르지 않습니다.";
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${default.user}")
     private String defaultUser;

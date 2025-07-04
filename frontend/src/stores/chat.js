@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useUserStore } from './user'
 import axios from 'axios'
 
@@ -14,15 +14,24 @@ export const useChatStore = defineStore('chat', () => {
     }
   ])
 
+  const userStore = useUserStore()
+
+  // justLoggedIn 플래그 감지하여 대화 기록 초기화
+  watch(() => userStore.justLoggedIn, (newVal) => {
+    if (newVal) {
+      clearMessages()
+      userStore.resetLoginFlag() // 플래그 초기화
+    }
+  })
+
   async function sendMessage(message) {
     if (!message.trim() || isLoading.value) return;
     isLoading.value = true
     error.value = null
 
-    const userStore = useUserStore()
     const userId = userStore.user?.id || 'demo-user'
 
-    // 사용자 메시지
+    // 사용자 메시지 추가
     messages.value.push({
       text: message,
       isUser: true,
@@ -31,7 +40,7 @@ export const useChatStore = defineStore('chat', () => {
     })
     const botMessageIndex = messages.value.length
 
-    // 봇 메시지 (pending)
+    // 봇 메시지 pending 상태 추가
     messages.value.push({
       text: '',
       isUser: false,
@@ -39,7 +48,6 @@ export const useChatStore = defineStore('chat', () => {
       timestamp: new Date()
     })
 
-    alert(userId);
     try {
       const response = await axios.post('/api/chat', {
         message,
@@ -83,4 +91,4 @@ export const useChatStore = defineStore('chat', () => {
     sendMessage,
     clearMessages
   }
-}) 
+})
