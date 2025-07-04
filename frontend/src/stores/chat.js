@@ -39,7 +39,7 @@ export const useChatStore = defineStore('chat', () => {
       const { data } = await axios.get(`/api/auth/summary?userId=${userId}`)
       messages.value = [
         {
-          text: data.summary || INIT_BOT_MESSAGE,
+          text: (data && data.message) ? data.message : INIT_BOT_MESSAGE,
           isUser: false,
           timestamp: new Date()
         }
