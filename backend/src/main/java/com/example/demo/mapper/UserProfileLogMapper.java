@@ -11,6 +11,7 @@ public interface UserProfileLogMapper {
     // SELECT
     int getMaxSeq(UserProfileLog log);
     List<UserProfileLog> selectLogList(String userId);
+    UserProfileLog selectLog(UserProfileLog log);
 
     // INSERT
     int insertLog(UserProfileLog log);
