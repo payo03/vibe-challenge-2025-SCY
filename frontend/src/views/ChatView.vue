@@ -1,5 +1,7 @@
 <template>
   <div class="popup-overlay">
+
+    <!-- 맞춤형 추천 -->
     <div v-if="isCustomMode" class="popup-center dual">
       <div class="history-popup">
         <div class="popup-header">
@@ -25,6 +27,8 @@
         <Chatbot />
       </div>
     </div>
+
+    <!-- 기본 -->
     <div v-else class="popup-center">
       <div class="chatbot-popup">
         <div class="popup-header">
@@ -71,23 +75,11 @@ function closeChatbotPopup() {
 }
 
 async function handleHistoryClick(item) {
-  // 1. 챗봇창에 pending 메시지 추가
-  chatStore.messages.push({
-    text: '',
-    isUser: false,
-    status: 'pending',
-    timestamp: new Date()
-  })
+
   try {
-    // 2. 서버 API 호출 및 prompt_log.md 기록
-    const data = await chatStore.fetchHistoryDetail({ yyyyMMdd: item.yyyyMMdd, seq: item.seq })
-    // 3. pending 메시지 교체
-    chatStore.messages[chatStore.messages.length - 1] = {
-      text: data.message || '상세 대화 불러오기 성공',
-      isUser: false,
-      status: 'done',
-      timestamp: new Date()
-    }
+    // 2. 서버 API 호출
+    await chatStore.fetchHistoryDetail({ userId: item.userId, yyyyMMdd: item.yyyyMMdd, seq: item.seq })
+
   } catch (e) {
     chatStore.messages[chatStore.messages.length - 1] = {
       text: '상세 대화 불러오기 실패',
@@ -98,10 +90,3 @@ async function handleHistoryClick(item) {
   }
 }
 </script>
-
-<style scoped>
-.chat-view {
-  height: 100vh;
-  width: 100vw;
-}
-</style> 

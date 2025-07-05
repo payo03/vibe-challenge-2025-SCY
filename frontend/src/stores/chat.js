@@ -61,16 +61,26 @@ export const useChatStore = defineStore('chat', () => {
   // 대화기록 기준 API 호출 
   async function fetchHistoryDetail({ userId, yyyyMMdd, seq }) {
     if (!userId) return
+    // 1. pending 메시지 추가
+    messages.value = [
+      {
+        text: '',
+        isUser: false,
+        status: STATUS_PENDING,
+        timestamp: new Date()
+      }
+    ]
     try {
       const { data } = await axios.post(
         '/api/chat/summary', 
         {userId, yyyyMMdd, seq}
       )
-
+      // 2. 응답 메시지로 교체
       messages.value = [
         {
           text: (data && data.message) ? data.message : INIT_BOT_MESSAGE,
           isUser: false,
+          status: STATUS_DONE,
           timestamp: new Date()
         }
       ]
@@ -79,6 +89,7 @@ export const useChatStore = defineStore('chat', () => {
         {
           text: INIT_BOT_MESSAGE,
           isUser: false,
+          status: STATUS_DONE,
           timestamp: new Date()
         }
       ]
