@@ -239,20 +239,26 @@ public class CommonService {
     // 요약본 Prompt 생성
     public String createSummaryPrompt() {
         StringBuilder promptBuilder = new StringBuilder();
-        promptBuilder.append("Based on the conversation so far, please judge the following three points and answer only in \"JSON format\".\n");
-        promptBuilder.append("(If it is not exact, please write it down if you can estimate it)\n");
+        promptBuilder.append("Based on the conversation so far, please judge the following points and answer only in \"JSON format\".\n");
+        promptBuilder.append("(If the information is unclear or missing, please write \"X\")\n\n");
+        
         promptBuilder.append("1. User's travel tendencies\n");
         promptBuilder.append("2. User's age\n");
-        promptBuilder.append("3. Summary of the main points of the conversation\n\n");
+        promptBuilder.append("3. Summary of the main points of the conversation\n");
+        promptBuilder.append("4. User's expected travel date or period (if mentioned)\n");
+        promptBuilder.append("5. User's intended travel destination(s) (if mentioned)\n\n");
         
-        promptBuilder.append("Here is the JSON format you need to respond to:\n\n");
+        promptBuilder.append("Respond using the following JSON format:\n\n");
         promptBuilder.append("{\n");
         promptBuilder.append("  \"Travel tendency\": \"[ANSWER or X]\",\n");
         promptBuilder.append("  \"Age\": \"[ANSWER or X]\",\n");
-        promptBuilder.append("  \"Key content\": \"[ANSWER or X]\"\n");
+        promptBuilder.append("  \"Key content\": \"[ANSWER or X]\",\n");
+        promptBuilder.append("  \"Travel date\": \"[ANSWER or X]\",\n");
+        promptBuilder.append("  \"Destination\": \"[ANSWER or X]\"\n");
         promptBuilder.append("}\n\n");
         
-        promptBuilder.append("If you have difficulty determining the information, please set the value of the corresponding item to \"X\".");
+        promptBuilder.append("IMPORTANT: Please write the values in the user's language used in the conversation (e.g., if the user spoke in Korean, answer in Korean).\n");
+        promptBuilder.append("If you are unable to determine a certain item, set its value to \"X\".");
 
         return promptBuilder.toString();
     }
@@ -275,18 +281,27 @@ public class CommonService {
         String trait = lastLog.getTrait();
         String ageGroup = lastLog.getAgeGroup();
         String summarize = lastLog.getSummarize();
+        String travelDate = lastLog.getTravelDate();
+        String destination = lastLog.getDestination();
         String language = LanguageDetectorConfig.detectLanguage(summarize);
+
+        Integer infoCount = 3;
+        if(!"X".equals(travelDate)) infoCount++;
+        if(!"X".equals(destination)) infoCount++;
 
         StringBuilder promptBuilder = new StringBuilder();
         promptBuilder.append("Answer in " + language + " AND With appropriate line breaks and age-appropriate tone for the user.\n")
-                    .append("Information(4 row) -> ")
-                    .append("Conversation Date: " + logDate + ".\n")
+                    .append("Information(" + infoCount + " row) -> \n")
                     .append("Travel tendency: " + trait + ".\n")
                     .append("Age: " + ageGroup + ".\n")
-                    .append("Conversation Summary: " + summarize + "\n")
-                    .append("Please bring up the topic naturally today, recalling our past conversation.\n")
-                    .append("As if you were starting a travel consultation again from yesterday, ask the first question in a friendly and gentle manner\n")
-                    .append("However, do not repeat what you have previously discussed, but rather build on that content to move on to the next story.");
+                    .append("Conversation Summary: " + summarize + "\n");
+
+        if(!"X".equals(travelDate)) promptBuilder.append("Date of travel: " + travelDate + "\n");
+        if(!"X".equals(destination)) promptBuilder.append("Destination: " + destination + "\n");
+
+        promptBuilder.append("Please bring up the topic naturally today, recalling our past conversation on " + logDate + ".\n")
+                    .append("Start the travel consultation again in a friendly and gentle tone, building on the previous discussion.\n")
+                    .append("Avoid repeating what was already discussed, and instead, continue the conversation based on that content.\n");
 
         return promptBuilder.toString();
     }
@@ -349,6 +364,8 @@ public class CommonService {
                 .trait(parsedMap.getOrDefault("Travel tendency", "X"))
                 .ageGroup(parsedMap.getOrDefault("Age", "X"))
                 .summarize(parsedMap.getOrDefault("Key content", "X"))
+                .travelDate(parsedMap.getOrDefault("Travel date", "X"))
+                .destination(parsedMap.getOrDefault("Destination", "X"))
                 .build();
             
             mapperRepository.insertLog(profileLog);
