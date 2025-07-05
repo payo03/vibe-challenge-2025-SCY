@@ -15,7 +15,8 @@ public class ScheduleController {
     @Autowired
     CommonService commonService;
     
-    @Scheduled(fixedRate = 120000)
+    // 대화기록이 없으면 사용자 OUT으로 간주하고 대화내용 요약본 저장
+    @Scheduled(fixedRate = 120000)  // 2분 기준
     public void checkInactiveUsers() {
         LocalDateTime now = LocalDateTime.now();
 
