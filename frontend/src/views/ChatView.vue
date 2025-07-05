@@ -14,7 +14,7 @@
           <div class="history-date-group" v-for="(group, date) in groupedHistory" :key="date">
             <div class="date-header">{{ formatDate(date) }}</div>
             <div class="history-item" v-for="(item, index) in group" :key="index" @click="handleHistoryClick(item)">
-              <div class="history-time">오전</div>
+              <div class="history-time">{{ formatAmPm(item.createdTime) }}</div>
               <div class="history-message">{{ item.summarize }}</div>
             </div>
           </div>
@@ -68,6 +68,14 @@ const groupedHistory = computed(() => {
 function formatDate(dateString) {
   const date = new Date(dateString)
   return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
+}
+
+// Logan : 오전-오후 데이터 
+function formatAmPm(createdTime) {
+  let date = new Date(createdTime)
+
+  const hour = date.getHours()
+  return hour < 12 ? '오전' : '오후'
 }
 
 function closeChatbotPopup() {

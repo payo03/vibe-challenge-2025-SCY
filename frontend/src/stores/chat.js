@@ -23,41 +23,6 @@ export const useChatStore = defineStore('chat', () => {
 
   const userStore = useUserStore()
 
-  // handleSummary 플래그 감지하여 대화 기록 초기화 및 Gemini 요약/질문 메시지 fetch
-  watch(() => userStore.handleSummary, async (isExecute) => {
-    if (isExecute) {
-      clearMessages()
-
-      // 최신 대화로그 추출
-      const user = userStore.user
-      let latestDate = null
-      let latestSeq = null
-      let latestLog = null
-
-      if (user && user.profileLogMap) {
-        // 날짜 내림차순
-        const dates = Object.keys(user.profileLogMap).filter(Boolean).sort((a, b) => new Date(b) - new Date(a))
-        for (const date of dates) {
-          const logs = user.profileLogMap[date]
-          if (Array.isArray(logs) && logs.length > 0) {
-            // seq 내림차순
-            const sorted = logs.filter(x => x && x.seq != null).sort((a, b) => b.seq - a.seq)
-            if (sorted.length > 0) {
-              latestLog = sorted[0]
-              latestDate = latestLog.yyyyMMdd
-              latestSeq = latestLog.seq
-              break
-            }
-          }
-        }
-
-        if(latestLog != null) await fetchHistoryDetail({ userId: user.id, yyyyMMdd: latestDate, seq: latestSeq })
-      }
-    
-      userStore.resetLoginFlag() // 플래그 초기화
-    }
-  })
-
   // 대화기록 기준 API 호출 
   async function fetchHistoryDetail({ userId, yyyyMMdd, seq }) {
     if (!userId) return
@@ -156,12 +121,44 @@ export const useChatStore = defineStore('chat', () => {
     error.value = null
   }
 
+  // 07-05 Logan : App.vue에 Watch등록하여 누락 제거
+  // 로그인/세션복원 시 Gemini 응답 자동 호출 (App.vue에서 호출)
+  async function handleLoginSummary(user) {
+    clearMessages()
+    let latestDate = null
+    let latestSeq = null
+    let latestLog = null
+    if (user && user.profileLogMap) {
+      // 날짜 내림차순
+      const dates = Object.keys(user.profileLogMap).filter(Boolean).sort((a, b) => new Date(b) - new Date(a))
+      for (const date of dates) {
+        const logs = user.profileLogMap[date]
+        if (Array.isArray(logs) && logs.length > 0) {
+          // seq 내림차순
+          const sorted = logs.filter(x => x && x.seq != null).sort((a, b) => b.seq - a.seq)
+          if (sorted.length > 0) {
+            latestLog = sorted[0]
+            latestDate = latestLog.yyyyMMdd
+            latestSeq = latestLog.seq
+            break
+          }
+        }
+      }
+
+      // 대화내용 있을시 로그기반 질문
+      if (latestLog != null) {
+        await fetchHistoryDetail({ userId: user.id, yyyyMMdd: latestDate, seq: latestSeq })
+      }
+    }
+  }
+
   return {
     messages,
     isLoading,
     error,
     sendMessage,
     clearMessages,
-    fetchHistoryDetail
+    fetchHistoryDetail,
+    handleLoginSummary
   }
 })
