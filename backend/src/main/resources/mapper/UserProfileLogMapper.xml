@@ -6,23 +6,23 @@
     <select id="getMaxSeq" parameterType="com.example.demo.dto.UserProfileLog" resultType="int">
         SELECT IFNULL(MAX(seq), 0) + 1 AS seq
         FROM user_profile_log
-        WHERE user_id = #{userId}
-        AND yyyyMMdd = #{yyyyMMdd}
+        WHERE yyyyMMdd = #{yyyyMMdd}
+        AND user_id = #{userId}
     </select>
 
     <select id="selectLogList" parameterType="string" resultType="com.example.demo.dto.UserProfileLog">
-        SELECT yyyyMMdd, seq, user_id, trait, age_group, summarize
+        SELECT yyyyMMdd, seq, user_id, summarize, created_time
         FROM user_profile_log
         WHERE user_id = #{userId}
         ORDER BY yyyyMMdd desc, seq DESC
     </select>
 
     <select id="selectLog" parameterType="com.example.demo.dto.UserProfileLog" resultType="com.example.demo.dto.UserProfileLog">
-        SELECT yyyyMMdd, seq, user_id, trait, age_group, summarize
+        SELECT yyyyMMdd, seq, user_id, trait, age_group, summarize, travel_date, destination
         FROM user_profile_log
-        WHERE user_id = #{userId}
-        AND yyyyMMdd = #{yyyyMMdd}
+        WHERE yyyyMMdd = #{yyyyMMdd}
         AND seq = #{seq}
+        AND user_id = #{userId}
     </select>
 
     <!-- INSERT -->
