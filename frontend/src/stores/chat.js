@@ -23,8 +23,8 @@ export const useChatStore = defineStore('chat', () => {
 
   const userStore = useUserStore()
 
-  // justLoggedIn 플래그 감지하여 대화 기록 초기화 및 Gemini 요약/질문 메시지 fetch
-  watch(() => userStore.justLoggedIn, async (newVal) => {
+  // handleSummary 플래그 감지하여 대화 기록 초기화 및 Gemini 요약/질문 메시지 fetch
+  watch(() => userStore.handleSummary, async (newVal) => {
     if (newVal) {
       clearMessages()
       await fetchGeminiWelcomeMessage(userStore.user?.id)

@@ -37,8 +37,8 @@
 - **요청:**
   로그인, 로그아웃시 대화내용을 초기화해줘야해
 - **조치:**
-  로그인할 때 justLoggedIn 플래그를 true로 세팅해서 로그인 신호를 발생
-  chatStore에서 이 신호를 감지해 대화 초기화 함수 호출 후 justLoggedIn 플래그를 false로 초기화
+  로그인할 때 handleSummary 플래그를 true로 세팅해서 로그인 신호를 발생
+  chatStore에서 이 신호를 감지해 대화 초기화 함수 호출 후 handleSummary 플래그를 false로 초기화
   앱 시작 시 세션 복원 시에도 로그인 신호 발생해서 자동 초기화 가능
   ChatBot.vue에서는 별도 조치 없이 messages가 바뀌는 대로 렌더링됨
 
