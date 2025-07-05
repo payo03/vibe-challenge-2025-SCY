@@ -47,6 +47,7 @@ public class MapperRepository {
         return userProfileLogMapper.getMaxSeq(log);
     }
 
+    // UserId기반 전체 LogList
     public Map<LocalDate, List<UserProfileLog>> selectLogList(String userId) {
         Map<LocalDate, List<UserProfileLog>> logMap = new HashMap<LocalDate, List<UserProfileLog>>();
 
@@ -60,20 +61,10 @@ public class MapperRepository {
         return logMap;
     }
 
-    // 최신 로그 1건 반환 (yyyyMMdd, seq 내림차순)
-    public UserProfileLog getLatestLog(String userId) {
-        List<UserProfileLog> logList = userProfileLogMapper.selectLogList(userId);  // 모듈함수 재사용
-        if (logList == null || logList.isEmpty()) return null;
+    // UserId - yyyyMMdd - seq 기반 Log
+    public UserProfileLog selectLog(UserProfileLog trackLog) {
 
-        // yyyyMMdd, seq 내림차순 정렬 후 첫 번째 반환
-        return logList.stream()
-            .sorted((a, b) -> {
-                int dateCompare = b.getYyyyMMdd().compareTo(a.getYyyyMMdd());
-                if (dateCompare != 0) return dateCompare;
-                return Integer.compare(b.getSeq(), a.getSeq());
-            })
-            .findFirst()
-            .orElse(null);
+        return userProfileLogMapper.selectLog(trackLog);
     }
 
     /* ---------------------------------------------------------------------- */
