@@ -67,18 +67,3 @@ async function onSubmit() {
   }
 }
 </script>
-
-<style>
-.success {
-  color: #2ecc40;
-  margin-top: 8px;
-  font-size: 0.95em;
-  text-align: center;
-}
-.error {
-  color: #ff4136;
-  margin-top: 8px;
-  font-size: 0.95em;
-  text-align: center;
-}
-</style>

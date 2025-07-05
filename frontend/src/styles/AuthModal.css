@@ -87,9 +87,16 @@ form {
   background: #f8e1e7;
   color: #d7263d;
 }
-.error {
-  color: #d7263d;
-  font-size: 0.95rem;
+
+.success {
+  color: #2ecc40;
+  margin-top: 8px;
+  font-size: 0.95em;
   text-align: center;
-  margin-top: 0.5rem;
-} 
+}
+.error {
+  color: #ff4136;
+  margin-top: 8px;
+  font-size: 0.95em;
+  text-align: center;
+}
