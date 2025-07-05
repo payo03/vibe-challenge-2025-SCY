@@ -23,20 +23,50 @@ export const useChatStore = defineStore('chat', () => {
 
   const userStore = useUserStore()
 
-  // justLoggedIn 플래그 감지하여 대화 기록 초기화 및 Gemini 요약/질문 메시지 fetch
-  watch(() => userStore.justLoggedIn, async (newVal) => {
-    if (newVal) {
+  // handleSummary 플래그 감지하여 대화 기록 초기화 및 Gemini 요약/질문 메시지 fetch
+  watch(() => userStore.handleSummary, async (isExecute) => {
+    if (isExecute) {
       clearMessages()
-      await fetchGeminiWelcomeMessage(userStore.user?.id)
+
+      // 최신 대화로그 추출
+      const user = userStore.user
+      let latestDate = null
+      let latestSeq = null
+      let latestLog = null
+
+      if (user && user.profileLogMap) {
+        // 날짜 내림차순
+        const dates = Object.keys(user.profileLogMap).filter(Boolean).sort((a, b) => new Date(b) - new Date(a))
+        for (const date of dates) {
+          const logs = user.profileLogMap[date]
+          if (Array.isArray(logs) && logs.length > 0) {
+            // seq 내림차순
+            const sorted = logs.filter(x => x && x.seq != null).sort((a, b) => b.seq - a.seq)
+            if (sorted.length > 0) {
+              latestLog = sorted[0]
+              latestDate = latestLog.yyyyMMdd
+              latestSeq = latestLog.seq
+              break
+            }
+          }
+        }
+
+        if(latestLog != null) await fetchHistoryDetail({ userId: user.id, yyyyMMdd: latestDate, seq: latestSeq })
+      }
+    
       userStore.resetLoginFlag() // 플래그 초기화
     }
   })
 
-  // Gemini 요약/질문 메시지 fetch 및 messages 갱신
-  async function fetchGeminiWelcomeMessage(userId) {
+  // 대화기록 기준 API 호출 
+  async function fetchHistoryDetail({ userId, yyyyMMdd, seq }) {
     if (!userId) return
     try {
-      const { data } = await axios.get(`/api/auth/summary?userId=${userId}`)
+      const { data } = await axios.post(
+        '/api/chat/summary', 
+        {userId, yyyyMMdd, seq}
+      )
+
       messages.value = [
         {
           text: (data && data.message) ? data.message : INIT_BOT_MESSAGE,
@@ -121,6 +151,6 @@ export const useChatStore = defineStore('chat', () => {
     error,
     sendMessage,
     clearMessages,
-    fetchGeminiWelcomeMessage
+    fetchHistoryDetail
   }
 })
