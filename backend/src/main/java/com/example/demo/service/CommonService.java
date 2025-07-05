@@ -31,6 +31,10 @@ public class CommonService {
     private static final Logger logger = LoggerFactory.getLogger(CommonService.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
+    public static final String ENDPOINT_FORMAT = "%s?key=%s";
+    public static final String KEY_QUESTION = "question";
+    public static final String KEY_ANSWER = "answer";
+
     /*  Question-Answer, 활동시간 기록 맵
         1Level : Key : UserId[String], Value: Info[Object] (lastActiveTime, question, answer)
         2Level
@@ -101,7 +105,6 @@ public class CommonService {
      * @param requestPrompt  (선택) 사용할 프롬프트 메시지, null인 경우 언어 감지 결과를 바탕으로 기본 프롬프트를 생성.
      * @return Gemini API에 전달할 요청 본문을 나타내는 Map 객체
      */
-    @SuppressWarnings("unchecked")
     public Map<String, Object> buildRequestBody(String userId, String requestMessage, String requestPrompt) {
         // 유저의 대화내용 API 호출
         List<Map<String, Object>> contentsList = new ArrayList<>();
@@ -109,6 +112,7 @@ public class CommonService {
         // 1. 프롬프트 문자열 (시스템 안내 역할)
         String language = LanguageDetectorConfig.detectLanguage(requestMessage);
         String promptMessage = requestPrompt;
+        
         if (promptMessage == null) promptMessage = createDefaultPrompt(language);
         contentsList.add(Map.of(
             "role", "user",
@@ -116,20 +120,7 @@ public class CommonService {
         ));
 
         // 2. 이전 대화가 있다면, 순서대로 추가
-        Map<String, Object> infoMap = getUserInfo(userId);
-        if (infoMap != null && infoMap.containsKey("conversation")) {
-            List<Map<String, String>> conversationList = (List<Map<String, String>>) infoMap.get("conversation");
-
-            for (Map<String, String> msg : conversationList) {
-                String role = msg.get("role");
-                String text = msg.get("text");
-
-                contentsList.add(Map.of(
-                    "role", role,
-                    "parts", List.of(Map.of("text", text))
-                ));
-            }
-        }
+        contentsList.addAll(getPreviousConversation(userId));
 
         // 3. user message 추가
         contentsList.add(Map.of(
@@ -140,7 +131,8 @@ public class CommonService {
         // 4. 전체 request body 반환
         return Map.of("contents", contentsList);
     }
-    public Map<String, Object> buildRequestBody(String userId, String message) { return buildRequestBody(userId, message, null); }
+
+    public Map<String, Object> buildRequestBody(String userId, String message)      { return buildRequestBody(userId, message, null); }
 
     /* ------------------------------------------------------------------------------------ */
     /* ------------------------------------- Call API ------------------------------------- */
@@ -187,8 +179,8 @@ public class CommonService {
     /* ------------------------------------------------------------------------------------ */
     @SuppressWarnings("unchecked")
     public void logHistory(String userId, Map<String, Object> inputMap) {
-        String question = String.valueOf(inputMap.get("question"));
-        String answer = String.valueOf(inputMap.get("answer"));
+        String question = String.valueOf(inputMap.get(KEY_QUESTION));
+        String answer = String.valueOf(inputMap.get(KEY_ANSWER));
         LocalDateTime time = LocalDateTime.now();
 
         Map<String, Object> userObject = userInfoMap.containsKey(userId)
@@ -225,8 +217,11 @@ public class CommonService {
 
     @Async
     public void finishUser(String userId) {
-        // 1. 요약본 생성, 2. 유저 정보 제거
-        if(!defaultUser.equals(userId)) this.summarize(userId);
+        // 1. 요약본 생성
+        List<Map<String, Object>> previousMessages = getPreviousConversation(userId);
+        if(!defaultUser.equals(userId) && previousMessages.size() >= 3) this.summarize(userId);
+
+        // 2. 유저 정보 제거
         this.removeUser(userId);
     }
 
@@ -238,9 +233,11 @@ public class CommonService {
         return userInfoMap;
     }
 
-    /* ------------------------------------- 내부함수 ------------------------------------- */
+    /* ------------------------------------------------------------------------------------ */
+    /* -------------------------------------- Prompt -------------------------------------- */
+    /* ------------------------------------------------------------------------------------ */
     // 요약본 Prompt 생성
-    private String createSummaryPrompt() {
+    public String createSummaryPrompt() {
         StringBuilder promptBuilder = new StringBuilder();
         promptBuilder.append("Based on the conversation so far, please judge the following three points and answer only in \"JSON format\".\n");
         promptBuilder.append("(If it is not exact, please write it down if you can estimate it)\n");
@@ -260,19 +257,63 @@ public class CommonService {
         return promptBuilder.toString();
     }
 
-    private String createDefaultPrompt(String language) {
+    // Default Prompt 생성
+    public String createDefaultPrompt(String language) {
         StringBuilder promptBuilder = new StringBuilder();
         promptBuilder.append("Rule1. Answer in " + language + ".\n")
                     .append("Rule2. You are a helpful travel assistant.\n")
                     .append("Rule3. The previous conversation is for reference only. Do not repeat or rephrase previous messages.\n")
-                    .append("Rule4. Respond only to the most recent message from the user.\n");
+                    .append("Rule4. Respond only to the most recent message from the user.\n")
+                    .append("Rule5. If the question is not related to travel, humorously say you cannot answer.\n");
 
         return promptBuilder.toString();
     }
 
+    // 요약본 Prompt 질문 생성
+    public String buildLogSummary(UserProfileLog lastLog) {
+        String trait = lastLog.getTrait();
+        String ageGroup = lastLog.getAgeGroup();
+        String summarize = lastLog.getSummarize();
+        String language = LanguageDetectorConfig.detectLanguage(summarize);
+
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append("Answer in " + language + " AND With appropriate line breaks and age-appropriate tone for the user.\n")
+                    .append("Information(3 row) -> ")
+                    .append("Travel tendency: " + trait + ".\n")
+                    .append("Age: " + ageGroup + ".\n")
+                    .append("Conversation Summary: " + summarize + "\n")
+                    .append("Please bring up the topic naturally today, recalling our past conversation.\n")
+                    .append("As if you were starting a travel consultation again from yesterday, ask the first question in a friendly and gentle manner\n")
+                    .append("However, do not repeat what you have previously discussed, but rather build on that content to move on to the next story.");
+
+        return promptBuilder.toString();
+    }
+
+
+    /* ------------------------------------- 내부함수 ------------------------------------- */
     // User 정보 제거
     private void removeUser(String userId) {
         userInfoMap.remove(userId);
+    }
+
+    // 이전대화내용 Get
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> getPreviousConversation(String userId) {
+        List<Map<String, Object>> contents = new ArrayList<>();
+
+        Map<String, Object> infoMap = getUserInfo(userId);
+        if (infoMap != null && infoMap.containsKey("conversation")) {
+            List<Map<String, String>> conversationList = (List<Map<String, String>>) infoMap.get("conversation");
+
+            for (Map<String, String> msg : conversationList) {
+                contents.add(Map.of(
+                    "role", msg.get("role"),
+                    "parts", List.of(Map.of("text", msg.get("text")))
+                ));
+            }
+        }
+
+        return contents;
     }
 
     // 내용 요약본 생성
@@ -291,10 +332,8 @@ public class CommonService {
             logger.info(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(requestBody));
             logger.info("###################### Gemini API 요약본 Request ######################\n");
 
-            // 3. Endpoint URL
-            StringBuilder sb = new StringBuilder();
-            String endpointURL = sb.append(geminiApiURL).append("?key=").append(geminiApiKey).toString();
-
+            // 3. Call Gemini
+            String endpointURL = String.format(CommonService.ENDPOINT_FORMAT, geminiApiURL, geminiApiKey);
             String result = callGeminiApi(restTemplate, headerMap, requestBody, endpointURL);
             Integer seq = mapperRepository.getMaxSeq(userId);
 
@@ -319,4 +358,5 @@ public class CommonService {
 
         }
     }
+
 }

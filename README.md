@@ -80,6 +80,8 @@ String prompt = "당신은 친근한 여행 도우미 챗봇입니다. 질문에
 ```properties
 # backend/src/main/resources/application.properties
 gemini.api.key=YOUR_GEMINI_API_KEY_HERE
+spring.datasource.url=jdbc:sqlite:database/[YOUR_DB]
+spring.datasource.driver-class-name=org.sqlite.JDBC
 ```
 
 ### 2. 백엔드 실행

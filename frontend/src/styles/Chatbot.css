@@ -86,6 +86,20 @@
   gap: 0.7rem;
 }
 
+.chat-messages table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 8px 0;
+}
+.chat-messages th, .chat-messages td {
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  text-align: left;
+}
+.chat-messages th {
+  background: #f5f5f5;
+}
+
 .message {
   display: flex;
   flex-direction: column;
@@ -151,8 +165,9 @@
 }
 
 .message-content p {
-  margin: 0;
+  font-size: 1rem;
   line-height: 1.4;
+  margin: 0;
   white-space: pre-line;
 }
 
@@ -292,7 +307,7 @@
   }
   
   .message-bubble {
-    max-width: 70%;
+    max-width: 90%;
   }
   
   .header-text h3 {
@@ -319,7 +334,7 @@
   }
   
   .message-bubble {
-    max-width: 50%;
+    max-width: 85%;
   }
   
   .chat-messages {
@@ -339,7 +354,7 @@
   }
   
   .message-bubble {
-    max-width: 30%;
+    max-width: 80%;
   }
 }
 
@@ -372,9 +387,13 @@
   }
 }
 
+/* 기존에 너무 작게 지정된 부분 삭제 또는 수정 */
 .bot-message .message-content p {
-  font-size: 0.65rem;
-} 
+  font-size: 1rem; /* 사용자 메시지 기본 크기와 동일하게 맞춤 */
+  line-height: 1.4;
+  margin: 0;
+  white-space: pre-line;
+}
 
 .typing-dots {
   font-weight: 700;
