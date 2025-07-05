@@ -271,6 +271,7 @@ public class CommonService {
 
     // 요약본 Prompt 질문 생성
     public String buildLogSummary(UserProfileLog lastLog) {
+        String logDate = String.valueOf(lastLog.getYyyyMMdd());
         String trait = lastLog.getTrait();
         String ageGroup = lastLog.getAgeGroup();
         String summarize = lastLog.getSummarize();
@@ -278,7 +279,8 @@ public class CommonService {
 
         StringBuilder promptBuilder = new StringBuilder();
         promptBuilder.append("Answer in " + language + " AND With appropriate line breaks and age-appropriate tone for the user.\n")
-                    .append("Information(3 row) -> ")
+                    .append("Information(4 row) -> ")
+                    .append("Conversation Date: " + logDate + ".\n")
                     .append("Travel tendency: " + trait + ".\n")
                     .append("Age: " + ageGroup + ".\n")
                     .append("Conversation Summary: " + summarize + "\n")
