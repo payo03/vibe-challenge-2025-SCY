@@ -25,6 +25,7 @@ public class LanguageDetectorConfig {
                 .build();
     }
 
+    // 언어감지 함수
     public static String detectLanguage(String text) {
         if (text == null || text.trim().isEmpty()) return "ko";
 

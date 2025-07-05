@@ -2,12 +2,16 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.ChatRequest;
 import com.example.demo.dto.ChatResponse;
+import com.example.demo.dto.UserProfileLog;
+import com.example.demo.repository.MapperRepository;
 import com.example.demo.service.ChatbotService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+
 
 @RestController
 @RequestMapping("/api/chat")
@@ -16,9 +20,16 @@ public class ChatbotController {
 
     private static final Logger logger = LoggerFactory.getLogger(ChatbotController.class);
 
-    @Autowired
-    private ChatbotService chatbotService;
+    private final ChatbotService chatbotService;
+    private final MapperRepository mapperRepository;
 
+    // 생성자 주입
+    public ChatbotController(ChatbotService chatbotService, MapperRepository mapperRepository) {
+        this.chatbotService = chatbotService;
+        this.mapperRepository = mapperRepository;
+    }
+
+    // 챗봇. 기본 챗봇뷰 API Call
     @PostMapping
     public ResponseEntity<ChatResponse> sendMessage(@RequestBody ChatRequest request) {
         logger.info("=== 챗봇 API 호출됨 ===");
@@ -40,6 +51,16 @@ public class ChatbotController {
             return ResponseEntity.internalServerError().body(errorResponse);
         }
     }
+    
+    // 대화내용 기반. 신규질문 생성
+    @PostMapping("/summary")
+    public ResponseEntity<ChatResponse> fetchSummaryConversation(@RequestBody UserProfileLog trackLog) {
+        UserProfileLog log = mapperRepository.selectLog(trackLog);
+
+        ChatResponse response = chatbotService.callLogSummary(log.getUserId(), log);
+        return ResponseEntity.ok(response);
+    }
+
 
     @GetMapping("/health")
     public ResponseEntity<String> health() {
