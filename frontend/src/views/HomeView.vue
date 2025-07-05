@@ -40,9 +40,9 @@ const showLogin = ref(false)
 
 function handleFeatureClick(type) {
   if (!userStore.isLoggedIn) {
-    alert('로그인이 필요합니다.')
+    // alert('로그인이 필요합니다.')
     showLogin.value = true
-    return
+    // return
   }
   
   if (type === 'custom') {
