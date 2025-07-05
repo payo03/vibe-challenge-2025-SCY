@@ -106,11 +106,13 @@
     border-radius: 10px;
     background: #fff;
     box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-    transition: box-shadow 0.2s;
+    transition: box-shadow 0.2s, background 0.2s, border 0.2s;
+    cursor: pointer;
 }
 .history-item:hover {
-    box-shadow: 0 6px 18px rgba(0,122,255,0.08);
-    border-color: #b3d1ff;
+    box-shadow: 0 6px 18px rgba(0,122,255,0.10);
+    border-color: #7bb6ff;
+    background: #f0f7ff;
 }
 .history-time {
     font-size: 12px;

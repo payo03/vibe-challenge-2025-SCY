@@ -7,7 +7,6 @@ export const useUserStore = defineStore('user', () => {
   const user = ref(null) // { name, id }
   const isLoggedIn = ref(false)
   const handleSummary = ref(false) // 로그인 직후 신호용 플래그
-  const justLoggedIn = ref(false) // 로그인 직후 신호용 플래그
 
   // 앱 시작 시 localStorage에서 사용자 복원
   function restoreSession() {
@@ -38,7 +37,7 @@ export const useUserStore = defineStore('user', () => {
       profileLogMap: res.data.profileLogMap // profileLogMap 추가
     }
     isLoggedIn.value = true
-    justLoggedIn.value = true // 로그인 시 대화 초기화 신호 발생
+    handleSummary.value = true // 로그인 시 대화 초기화 신호 발생
     localStorage.setItem('user', JSON.stringify(user.value)) // localStorage 저장
   }
 
