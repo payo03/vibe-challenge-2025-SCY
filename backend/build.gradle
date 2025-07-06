@@ -37,6 +37,15 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	
 	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
+
+	// JUnit 5 (Jupiter)
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    // Mockito
+    testImplementation 'org.mockito:mockito-core:5.2.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.2.0'
+    // Spring Boot Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
 }
 
 tasks.named('test') {
@@ -60,4 +69,8 @@ processResources.dependsOn copyFrontend
 
 tasks.withType(JavaExec) {
     jvmArgs += ["-Dfile.encoding=UTF-8"]
+}
+
+test {
+    useJUnitPlatform()
 }
