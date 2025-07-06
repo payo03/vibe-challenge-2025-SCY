@@ -36,20 +36,20 @@ public class ChatbotController {
         logger.info("사용자 메시지: {}", request.getMessage());
         logger.info("유저 ID: {}", request.getUserId());
         
+        ChatResponse response = new ChatResponse();
         try {
-            ChatResponse response = chatbotService.generateResponse(request);
+            response = chatbotService.generateResponse(request);
+            
             logger.info("AI 응답 생성 완료: {}", response.getMessage().substring(0, Math.min(50, response.getMessage().length())) + "...");
-
-            return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("챗봇 API 오류 발생: ", e);
-            
-            ChatResponse errorResponse = new ChatResponse();
-            errorResponse.setMessage("서버 오류가 발생했습니다.");
-            errorResponse.setUserId(request.getUserId());
-            errorResponse.setUserMessage(false);
-            return ResponseEntity.internalServerError().body(errorResponse);
+
+            response.setMessage("서버 오류가 발생했습니다.");
+            response.setUserId(request.getUserId());
+            response.setUserMessage(false);
         }
+
+        return ResponseEntity.ok(response);
     }
     
     // 대화내용 기반. 신규질문 생성
