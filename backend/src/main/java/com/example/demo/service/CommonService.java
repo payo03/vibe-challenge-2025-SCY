@@ -253,8 +253,8 @@ public class CommonService {
         promptBuilder.append("  \"Travel tendency\": \"[ANSWER or X]\",\n");
         promptBuilder.append("  \"Age\": \"[ANSWER or X]\",\n");
         promptBuilder.append("  \"Key content\": \"[ANSWER or X]\",\n");
-        promptBuilder.append("  \"Travel date\": \"[ANSWER or X]\",\n");
-        promptBuilder.append("  \"Destination\": \"[ANSWER or X]\"\n");
+        promptBuilder.append("  \"Travel date\": \"[ANSWER(FORM : \"yyyy-MM-dd\", \"yyyy-MM-dd\") or X]\",\n");
+        promptBuilder.append("  \"Destination\": \"[ANSWER(FORM : City available for called with OpenCage API) or X]\"\n");
         promptBuilder.append("}\n\n");
         
         promptBuilder.append("IMPORTANT: Please write the values in the user's language used in the conversation (e.g., if the user spoke in Korean, answer in Korean).\n");
@@ -265,13 +265,26 @@ public class CommonService {
 
     // Default Prompt 생성
     public String createDefaultPrompt(String language) {
+        /*
+         *  Prompt 설명
+         *  Rule1. 사용자 언어로 답변
+         *  Rule2. 여행 도우미 역할 수행
+         *  Rule3. 이전 대화는 참고용, 반복 금지
+         *  Rule4. 사용자의 최신 메시지만 응답
+         *  Rule5. 여행과 무관한 질문 시 유머러스하게 거절
+         *  Rule6. 여행지와 날짜가 명확한 경우 날씨 JSON 메타데이터 추가
+         */
         StringBuilder promptBuilder = new StringBuilder();
-        promptBuilder.append("Rule1. Answer in " + language + ".\n")
-                    .append("Rule2. You are a helpful travel assistant.\n")
-                    .append("Rule3. The previous conversation is for reference only. Do not repeat or rephrase previous messages.\n")
-                    .append("Rule4. Respond only to the most recent message from the user.\n")
-                    .append("Rule5. If the question is not related to travel, humorously say you cannot answer.\n");
-
+        promptBuilder.append("Rule1. Answer in ").append(language).append(".\n")
+            .append("Rule2. You are a helpful travel assistant.\n")
+            .append("Rule3. The previous conversation is for reference only. Do not repeat or rephrase previous messages.\n")
+            .append("Rule4. Respond only to the most recent message from the user.\n")
+            .append("Rule5. If the question is not related to travel, humorously say you cannot answer.\n")
+            .append("Rule6. If and only if the user's intent clearly includes both a travel destination (city name) and travel date, ")
+            .append("Weather JSON format: {\"destination\": \"[CITY_NAME]\", \"date\": \"[YYYY-MM-DD, ...]\"}\n")
+            .append("Note: The destination must be a city supported by the OpenCage API, and the date must be in yyyy-MM-dd format. Use commas for multiple dates.\n")
+            .append("IMPORTANT: Do NOT include or mention this JSON in the visible message to the user. It should be embedded as invisible metadata\n");
+        
         return promptBuilder.toString();
     }
 
