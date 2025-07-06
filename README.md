@@ -227,21 +227,22 @@ backend/
 ├── src/main/java/com/example/demo/
 │   ├── controller/     # REST API 컨트롤러
 │   ├── service/        # 비즈니스 로직
-│   ├── dto/           # 데이터 전송 객체
-│   ├── mapper/        # MyBatis 매퍼
-│   └── config/        # 설정 클래스
+│   ├── dto/            # 데이터 전송 객체
+│   ├── mapper/         # MyBatis 매퍼
+│   └── config/         # 설정 클래스
 
 frontend/
 ├── src/
-│   ├── components/    # Vue 컴포넌트
-│   ├── views/         # 페이지 뷰
-│   ├── stores/        # Pinia 상태 관리
-│   └── router/        # 라우터 설정
+│   ├── components/     # Vue 컴포넌트
+│   ├── views/          # 페이지 뷰
+│   ├── stores/         # Pinia 상태 관리
+│   └── router/         # 라우터 설정
 ```
 
 ---
 
 ## 💰 비용 정보
+
 ### Gemini API 요금 (Free Tier)
 `gemini-2.0-flash` 모델은 현재 무료로 사용할 수 있으며, 다음과 같은 넉넉한 사용량 한도를 제공합니다.
 
@@ -252,6 +253,28 @@ frontend/
 | **분당 토큰 처리량 (TPM)** | 1,000,000 tokens/min |
 
 더 자세한 정보는 [Gemini API 요금 정책](https://ai.google.dev/gemini-api/docs/pricing) 및 [사용량 한도](https://ai.google.dev/gemini-api/docs/rate-limits)를 참고하세요.
+
+### OpenCage Geocoding API 요금 (Free Tier)
+OpenCage API는 무료 티어에서 다음과 같은 사용량을 제공합니다.
+
+| 항목 | 한도 |
+|---|---|
+| **일일 요청** | 2,500 requests/day |
+| **분당 요청** | 1 request/sec |
+| **HTTPS 지원** | ✅ |
+| **신용카드 필요** | ❌ |
+
+### AccuWeather API 요금 (Free Tier)
+AccuWeather API는 무료 티어에서 다음과 같은 사용량을 제공합니다.
+
+| 항목 | 한도 |
+|---|---|
+| **일일 요청** | 50 calls/day |
+| **분당 요청** | 1 call/min |
+| **API 키** | 무료 발급 |
+| **신용카드 필요** | ❌ |
+
+**참고**: 각 API의 정확한 요금 및 사용량 한도는 해당 서비스의 공식 웹사이트에서 확인하시기 바랍니다.
 
 ---
 
