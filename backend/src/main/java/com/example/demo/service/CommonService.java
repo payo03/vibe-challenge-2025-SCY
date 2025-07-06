@@ -272,7 +272,8 @@ public class CommonService {
          *  Rule3. 이전 대화는 참고용, 반복 금지
          *  Rule4. 사용자의 최신 메시지만 응답
          *  Rule5. 여행과 무관한 질문 시 유머러스하게 거절
-         *  Rule6. 여행지와 날짜가 명확한 경우 날씨 JSON 메타데이터 추가
+         *  Rule6. 여행과 관련된 질문일경우 답변 유도
+         *  Rule7. 여행지와 날짜가 명확한 경우 날씨 JSON 메타데이터 추가
          */
         StringBuilder promptBuilder = new StringBuilder();
         promptBuilder.append("Rule1. Answer in ").append(language).append(".\n")
@@ -280,10 +281,12 @@ public class CommonService {
             .append("Rule3. The previous conversation is for reference only. Do not repeat or rephrase previous messages.\n")
             .append("Rule4. Respond only to the most recent message from the user.\n")
             .append("Rule5. If the question is not related to travel, humorously say you cannot answer.\n")
-            .append("Rule6. If and only if the user's intent clearly includes both a travel destination (city name) and travel date, ")
-            .append("Weather JSON format: {\"destination\": \"[CITY_NAME]\", \"date\": \"[YYYY-MM-DD, ...]\"}\n")
+            .append("Rule6. Always end your visible response with a relevant follow-up question related to the user's trip.\n")
+            .append("Rule7. If and only if the user's intent clearly includes both a travel destination (city name) and travel date, ")
+            .append("respond naturally to the user, and at the end of your response, silently append the following JSON **as an HTML-style comment** (not visible to the user):\n")
+            .append("<!--weather:{\"destination\": \"[CITY_NAME]\", \"date\": \"[YYYY-MM-DD, ...]\"}-->\n")
             .append("Note: The destination must be a city supported by the OpenCage API, and the date must be in yyyy-MM-dd format. Use commas for multiple dates.\n")
-            .append("IMPORTANT: Do NOT include or mention this JSON in the visible message to the user. It should be embedded as invisible metadata\n");
+            .append("IMPORTANT: Do NOT include or mention this JSON in the visible message to the user. Only embed it inside an HTML-style comment block.\n");
         
         return promptBuilder.toString();
     }
