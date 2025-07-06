@@ -34,7 +34,9 @@
             user_id,
             trait,
             age_group,
-            summarize
+            summarize,
+            destination,
+            travel_date
         )
         VALUES 
         (
@@ -43,7 +45,9 @@
             #{userId}, 
             #{trait}, 
             #{ageGroup}, 
-            #{summarize}
+            #{summarize},
+            #{destination},
+            #{travelDate}
         )
     </insert>
 </mapper> 
