@@ -14,6 +14,21 @@ const healthCheck = () => {
 window.healthCheck = healthCheck
 
 import HeaderBar from './components/HeaderBar.vue'
+import { watch } from 'vue'
+import { useUserStore } from './stores/user'
+import { useChatStore } from './stores/chat'
+
+const userStore = useUserStore()
+const chatStore = useChatStore()
+
+// 07-05 Logan : App.vue에 Watch등록하여 누락 제거
+// 로그인/세션복원 시 Gemini 응답 자동 호출 (App.vue에서 단일 watch)
+watch(() => userStore.handleSummary, async (isExecute) => {
+  if (isExecute) {
+    await chatStore.handleLoginSummary(userStore.user)
+    userStore.resetLoginFlag()
+  }
+})
 </script>
 
 <template>

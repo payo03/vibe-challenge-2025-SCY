@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.config.HeaderTypeList;
 import com.example.demo.dto.ChatRequest;
 import com.example.demo.dto.ChatResponse;
+import com.example.demo.dto.ParsedResponse;
 import com.example.demo.dto.UserProfileLog;
 
 import org.slf4j.Logger;
@@ -21,12 +22,11 @@ public class ChatbotService {
 
     private static final Logger logger = LoggerFactory.getLogger(ChatbotService.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    
-    // 상수 선언
-    private static final String ENDPOINT_FORMAT = "%s?key=%s";
 
     private final CommonService commonService;
     private final RestTemplate restTemplate;
+    private final WeatherAPIService weatherAPIService;
+    private final ResponseParserService parserService;
 
     @Value("${gemini.api.key}")
     private String geminiApiKey;
@@ -38,8 +38,14 @@ public class ChatbotService {
     private String defaultUser;
 
     // 생성자 주입
-    public ChatbotService(CommonService commonService, @Qualifier("defaultRestTemplate") RestTemplate restTemplate) {
+    public ChatbotService(CommonService commonService, 
+                        WeatherAPIService weatherAPIService,
+                        ResponseParserService parserService,
+                        @Qualifier("defaultRestTemplate") RestTemplate restTemplate
+    ) {
         this.commonService = commonService;
+        this.weatherAPIService = weatherAPIService;
+        this.parserService = parserService;
         this.restTemplate = restTemplate;
     }
 
@@ -66,15 +72,21 @@ public class ChatbotService {
             }
             
             // 3. Endpoint URL
-            String endpointURL = String.format(ENDPOINT_FORMAT, geminiApiURL, geminiApiKey);
-            String result = commonService.callGeminiApi(restTemplate, headerMap, requestBody, endpointURL);
+            String endpointURL = String.format(CommonService.ENDPOINT_FORMAT, geminiApiURL, geminiApiKey);
+            String aiText = commonService.callGeminiApi(restTemplate, headerMap, requestBody, endpointURL);
+            ParsedResponse response = parserService.parseGeminiResponse(aiText);
+            String result = response.getUserMessage();
 
-            // 4. 대화내용 저장
+            // 4. 날씨요청이 있는경우 정보 추가
+            Map<String, Object> weatherInfo = response.getWeatherInfo();
+            if(!weatherInfo.isEmpty()) result += "\n\n" + weatherAPIService.getWeatherString(weatherInfo);
+
+            // 5. 대화내용 저장
             Map<String, Object> conversationMap = new HashMap<>();
             conversationMap.put(CommonService.KEY_QUESTION, message);
             conversationMap.put(CommonService.KEY_ANSWER, result);
 
-            // 5. 사용자 정보 업데이트
+            // 6. 사용자 정보 업데이트
             commonService.logHistory(userId, conversationMap);
             return commonService.createChatResponse(userId, result);
         } catch (RuntimeException e) {
@@ -108,8 +120,8 @@ public class ChatbotService {
                 logger.warn("Failed to pretty print JSON", e);
             }
             
-            // 3. Endpoint URL
-            String endpointURL = String.format(ENDPOINT_FORMAT, geminiApiURL, geminiApiKey);
+            // 3. Call Gemini
+            String endpointURL = String.format(CommonService.ENDPOINT_FORMAT, geminiApiURL, geminiApiKey);
             String result = commonService.callGeminiApi(restTemplate, headerMap, requestBody, endpointURL);
 
             // 4. 대화내용 저장

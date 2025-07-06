@@ -31,6 +31,7 @@ public class CommonService {
     private static final Logger logger = LoggerFactory.getLogger(CommonService.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
+    public static final String ENDPOINT_FORMAT = "%s?key=%s";
     public static final String KEY_QUESTION = "question";
     public static final String KEY_ANSWER = "answer";
 
@@ -104,7 +105,6 @@ public class CommonService {
      * @param requestPrompt  (선택) 사용할 프롬프트 메시지, null인 경우 언어 감지 결과를 바탕으로 기본 프롬프트를 생성.
      * @return Gemini API에 전달할 요청 본문을 나타내는 Map 객체
      */
-    @SuppressWarnings("unchecked")
     public Map<String, Object> buildRequestBody(String userId, String requestMessage, String requestPrompt) {
         // 유저의 대화내용 API 호출
         List<Map<String, Object>> contentsList = new ArrayList<>();
@@ -112,6 +112,7 @@ public class CommonService {
         // 1. 프롬프트 문자열 (시스템 안내 역할)
         String language = LanguageDetectorConfig.detectLanguage(requestMessage);
         String promptMessage = requestPrompt;
+        
         if (promptMessage == null) promptMessage = createDefaultPrompt(language);
         contentsList.add(Map.of(
             "role", "user",
@@ -119,20 +120,7 @@ public class CommonService {
         ));
 
         // 2. 이전 대화가 있다면, 순서대로 추가
-        Map<String, Object> infoMap = getUserInfo(userId);
-        if (infoMap != null && infoMap.containsKey("conversation")) {
-            List<Map<String, String>> conversationList = (List<Map<String, String>>) infoMap.get("conversation");
-
-            for (Map<String, String> msg : conversationList) {
-                String role = msg.get("role");
-                String text = msg.get("text");
-
-                contentsList.add(Map.of(
-                    "role", role,
-                    "parts", List.of(Map.of("text", text))
-                ));
-            }
-        }
+        contentsList.addAll(getPreviousConversation(userId));
 
         // 3. user message 추가
         contentsList.add(Map.of(
@@ -229,8 +217,11 @@ public class CommonService {
 
     @Async
     public void finishUser(String userId) {
-        // 1. 요약본 생성, 2. 유저 정보 제거
-        if(!defaultUser.equals(userId)) this.summarize(userId);
+        // 1. 요약본 생성
+        List<Map<String, Object>> previousMessages = getPreviousConversation(userId);
+        if(!defaultUser.equals(userId) && previousMessages.size() >= 3) this.summarize(userId);
+
+        // 2. 유저 정보 제거
         this.removeUser(userId);
     }
 
@@ -248,43 +239,85 @@ public class CommonService {
     // 요약본 Prompt 생성
     public String createSummaryPrompt() {
         StringBuilder promptBuilder = new StringBuilder();
-        promptBuilder.append("Based on the conversation so far, please judge the following three points and answer only in \"JSON format\".\n");
-        promptBuilder.append("(If it is not exact, please write it down if you can estimate it)\n");
+        promptBuilder.append("Based on the conversation so far, please judge the following points and answer only in \"JSON format\".\n");
+        promptBuilder.append("(If the information is unclear or missing, please write \"X\")\n\n");
+        
         promptBuilder.append("1. User's travel tendencies\n");
         promptBuilder.append("2. User's age\n");
-        promptBuilder.append("3. Summary of the main points of the conversation\n\n");
+        promptBuilder.append("3. Summary of the main points of the conversation\n");
+        promptBuilder.append("4. User's expected travel date or period (if mentioned)\n");
+        promptBuilder.append("5. User's intended travel destination(s) (if mentioned)\n\n");
         
-        promptBuilder.append("Here is the JSON format you need to respond to:\n\n");
+        promptBuilder.append("Respond using the following JSON format:\n\n");
         promptBuilder.append("{\n");
         promptBuilder.append("  \"Travel tendency\": \"[ANSWER or X]\",\n");
         promptBuilder.append("  \"Age\": \"[ANSWER or X]\",\n");
-        promptBuilder.append("  \"Key content\": \"[ANSWER or X]\"\n");
+        promptBuilder.append("  \"Key content\": \"[ANSWER or X]\",\n");
+        promptBuilder.append("  \"Travel date\": \"[ANSWER(FORM : \"yyyy-MM-dd\", \"yyyy-MM-dd\") or X]\",\n");
+        promptBuilder.append("  \"Destination\": \"[ANSWER(FORM : City available for called with OpenCage API) or X]\"\n");
         promptBuilder.append("}\n\n");
         
-        promptBuilder.append("If you have difficulty determining the information, please set the value of the corresponding item to \"X\".");
+        promptBuilder.append("IMPORTANT: Please write the values in the user's language used in the conversation (e.g., if the user spoke in Korean, answer in Korean).\n");
+        promptBuilder.append("If you are unable to determine a certain item, set its value to \"X\".");
 
         return promptBuilder.toString();
     }
 
     // Default Prompt 생성
     public String createDefaultPrompt(String language) {
+        /*
+         *  Prompt 설명
+         *  Rule1. 사용자 언어로 답변
+         *  Rule2. 여행 도우미 역할 수행
+         *  Rule3. 이전 대화는 참고용, 반복 금지
+         *  Rule4. 사용자의 최신 메시지만 응답
+         *  Rule5. 여행과 무관한 질문 시 유머러스하게 거절
+         *  Rule6. 여행과 관련된 질문일경우 답변 유도
+         *  Rule7. 여행지와 날짜가 명확한 경우 날씨 JSON 메타데이터 추가
+         */
         StringBuilder promptBuilder = new StringBuilder();
-        promptBuilder.append("Rule1. Answer in " + language + ".\n")
-                    .append("Rule2. You are a helpful travel assistant.\n")
-                    .append("Rule3. The previous conversation is for reference only. Do not repeat or rephrase previous messages.\n")
-                    .append("Rule4. Respond only to the most recent message from the user.\n")
-                    .append("Rule5. If the question is not related to travel, humorously say you cannot answer.\n");
-
+        promptBuilder.append("Rule1. Answer in ").append(language).append(".\n")
+            .append("Rule2. You are a helpful travel assistant.\n")
+            .append("Rule3. The previous conversation is for reference only. Do not repeat or rephrase previous messages.\n")
+            .append("Rule4. Respond only to the most recent message from the user.\n")
+            .append("Rule5. If the question is not related to travel, humorously say you cannot answer.\n")
+            .append("Rule6. Always end your visible response with a relevant follow-up question related to the user's trip.\n")
+            .append("Rule7. If and only if the user's intent clearly includes both a travel destination (city name) and travel date, ")
+            .append("respond naturally to the user, and at the end of your response, silently append the following JSON **as an HTML-style comment** (not visible to the user):\n")
+            .append("<!--weather:{\"destination\": \"[CITY_NAME]\", \"date\": \"[YYYY-MM-DD, ...]\"}-->\n")
+            .append("Note: The destination must be a city supported by the OpenCage API, and the date must be in yyyy-MM-dd format. Use commas for multiple dates.\n")
+            .append("IMPORTANT: Do NOT include or mention this JSON in the visible message to the user. Only embed it inside an HTML-style comment block.\n");
+        
         return promptBuilder.toString();
     }
 
     // 요약본 Prompt 질문 생성
     public String buildLogSummary(UserProfileLog lastLog) {
+        String logDate = String.valueOf(lastLog.getYyyyMMdd());
+        String trait = lastLog.getTrait();
+        String ageGroup = lastLog.getAgeGroup();
+        String summarize = lastLog.getSummarize();
+        String travelDate = lastLog.getTravelDate();
+        String destination = lastLog.getDestination();
+        String language = LanguageDetectorConfig.detectLanguage(summarize);
+
+        Integer infoCount = 3;
+        if(!"X".equals(travelDate)) infoCount++;
+        if(!"X".equals(destination)) infoCount++;
+
         StringBuilder promptBuilder = new StringBuilder();
-        promptBuilder.append("Information.Travel tendency: " + lastLog.getTrait() + ".\n")
-                    .append("Age: " + lastLog.getAgeGroup() + ".\n")
-                    .append("Conversation Summary: " + lastLog.getSummarize() + "\n")
-                    .append("Based on the information, ask the first question of today's conversation");
+        promptBuilder.append("Answer in " + language + " AND With appropriate line breaks and age-appropriate tone for the user.\n")
+                    .append("Information(" + infoCount + " row) -> \n")
+                    .append("Travel tendency: " + trait + ".\n")
+                    .append("Age: " + ageGroup + ".\n")
+                    .append("Conversation Summary: " + summarize + "\n");
+
+        if(!"X".equals(travelDate)) promptBuilder.append("Date of travel: " + travelDate + "\n");
+        if(!"X".equals(destination)) promptBuilder.append("Destination: " + destination + "\n");
+
+        promptBuilder.append("Please bring up the topic naturally today, recalling our past conversation on " + logDate + ".\n")
+                    .append("Start the travel consultation again in a friendly and gentle tone, building on the previous discussion.\n")
+                    .append("Avoid repeating what was already discussed, and instead, continue the conversation based on that content.\n");
 
         return promptBuilder.toString();
     }
@@ -294,6 +327,26 @@ public class CommonService {
     // User 정보 제거
     private void removeUser(String userId) {
         userInfoMap.remove(userId);
+    }
+
+    // 이전대화내용 Get
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> getPreviousConversation(String userId) {
+        List<Map<String, Object>> contents = new ArrayList<>();
+
+        Map<String, Object> infoMap = getUserInfo(userId);
+        if (infoMap != null && infoMap.containsKey("conversation")) {
+            List<Map<String, String>> conversationList = (List<Map<String, String>>) infoMap.get("conversation");
+
+            for (Map<String, String> msg : conversationList) {
+                contents.add(Map.of(
+                    "role", msg.get("role"),
+                    "parts", List.of(Map.of("text", msg.get("text")))
+                ));
+            }
+        }
+
+        return contents;
     }
 
     // 내용 요약본 생성
@@ -312,10 +365,8 @@ public class CommonService {
             logger.info(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(requestBody));
             logger.info("###################### Gemini API 요약본 Request ######################\n");
 
-            // 3. Endpoint URL
-            StringBuilder sb = new StringBuilder();
-            String endpointURL = sb.append(geminiApiURL).append("?key=").append(geminiApiKey).toString();
-
+            // 3. Call Gemini
+            String endpointURL = String.format(CommonService.ENDPOINT_FORMAT, geminiApiURL, geminiApiKey);
             String result = callGeminiApi(restTemplate, headerMap, requestBody, endpointURL);
             Integer seq = mapperRepository.getMaxSeq(userId);
 
@@ -329,6 +380,8 @@ public class CommonService {
                 .trait(parsedMap.getOrDefault("Travel tendency", "X"))
                 .ageGroup(parsedMap.getOrDefault("Age", "X"))
                 .summarize(parsedMap.getOrDefault("Key content", "X"))
+                .travelDate(parsedMap.getOrDefault("Travel date", "X"))
+                .destination(parsedMap.getOrDefault("Destination", "X"))
                 .build();
             
             mapperRepository.insertLog(profileLog);
