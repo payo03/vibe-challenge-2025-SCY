@@ -40,7 +40,7 @@ public class ResponseParserService {
             weatherInfo = extractWeatherInfo(aiText);
             
             // 2. JSON을 제외한 사용자 메시지 추출
-            modelMessage = extractUserMessage(aiText);
+            modelMessage = extractModelMessage(aiText);
             
             // 3. 결과 로깅
             logger.info("날씨 요청 감지: {}", weatherInfo);
@@ -106,17 +106,15 @@ public class ResponseParserService {
     /**
      * WeatherInfo JSON을 제외한 사용자 메시지 추출
      */
-    private String extractUserMessage(String aiText) {
-        // JSON 부분을 제거하고 나머지를 사용자 메시지로 사용
-        String userMessage = aiText;
-        
-        Matcher matcher = WEATHER_JSON_PATTERNS.matcher(userMessage);
-        if (matcher.find()) userMessage = userMessage.replaceAll(WEATHER_JSON_PATTERNS.pattern(), "").trim();
-        
-        // 추가 정리: 연속된 공백 제거, 불필요한 구두점 정리
-        userMessage = userMessage.replaceAll("\\s+", " ").trim();
-        userMessage = userMessage.replaceAll("^[,\\s]+|[,\\s]+$", ""); // 앞뒤 쉼표, 공백 제거
-        
-        return userMessage.isEmpty() ? "날씨 정보를 확인해드릴게요!" : userMessage;
+    private String extractModelMessage(String aiText) {
+        String modelMessage = aiText;
+    
+        // HTML 주석 내 weather JSON 제거
+        Matcher matcher = WEATHER_JSON_PATTERNS.matcher(modelMessage);
+        if (matcher.find()) {
+            modelMessage = matcher.replaceAll("").trim();
+        }
+    
+        return modelMessage;
     }
 }

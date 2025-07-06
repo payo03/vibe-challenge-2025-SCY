@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,18 +52,18 @@ public class WeatherAPIService {
     public String getWeatherString(Map<String, Object> infoMap) {
         String result = "";
 
-        String cityName = infoMap.containsKey("cityName") 
-            ? String.valueOf(infoMap.get("cityName")) 
+        String destination = infoMap.containsKey("destination") 
+            ? String.valueOf(infoMap.get("destination")) 
             : null;
-        String paramDate = infoMap.containsKey("paramDate") 
-            ? String.valueOf(infoMap.get("paramDate")) 
+        String paramDate = infoMap.containsKey("date") 
+            ? String.valueOf(infoMap.get("date")) 
             : null;
 
         // 1. 도시-날짜가 없으면 Return [1차 Validation]
-        if (cityName == null || paramDate == null) return result;
+        if (destination == null || paramDate == null) return result;
         
         // 2. 위도-경도를 불러오지 못하면 Return [2차 Validation]
-        Map<String, Double> latlngMap = getLATLNGFromCity(cityName);
+        Map<String, Double> latlngMap = getLATLNGFromCity(destination);
         if(latlngMap.isEmpty()) return result;
 
         // 3. 위도-경도의 Key값 가져오지 못하면 Return [3차 Validation]
@@ -71,9 +72,13 @@ public class WeatherAPIService {
 
         // 4. Key값 기준으로 날씨 GET
         Map<String, Map<String, Object>> weatherMap = getDayForecast(locationKey);
+        if(weatherMap.isEmpty()) return result;
 
         // 5. 사용자의 여행날짜 기준으로 날씨 Return
-        List<String> travelDateList = Arrays.asList(paramDate.split(","));
+        List<String> travelDateList = Arrays.stream(paramDate.split(","))
+            .map(String::trim) // 문자열 앞뒤 공백 제거
+            .collect(Collectors.toList());
+
         LocalDate startDate = null;
         LocalDate endDate = null;
         if (!travelDateList.isEmpty()) {
@@ -100,38 +105,21 @@ public class WeatherAPIService {
             }
         }
 
-        // 7. 날짜정보 Return
-        StringBuilder response = new StringBuilder();
-        response.append("🌤️ **날씨 정보**\n\n");
-        for (Map<String, Object> weatherInfo : weatherInfoList) {
-            String date = (String) weatherInfo.get("date");
-            String minTemp = String.valueOf(weatherInfo.get("min_temp"));
-            String maxTemp = String.valueOf(weatherInfo.get("max_temp"));
-            String dayPhrase = (String) weatherInfo.get("day_phrase");
-            String nightPhrase = (String) weatherInfo.get("night_phrase");
-            
-            response.append("📅 **").append(date).append("**\n");
-            response.append("🌡️ **온도**: ").append(minTemp).append("°C ~ ").append(maxTemp).append("°C\n");
-            response.append("☀️ **낮**: ").append(dayPhrase).append("\n");
-            response.append("🌙 **밤**: ").append(nightPhrase).append("\n\n");
-        }
-        response.append("즐거운 여행 되세요! ✈️");
-
-        return response.toString();
+        return createWeatherMarkdown(destination, weatherInfoList);
     }
     
     /* ----------------------------------------------------------------------------------- */
-    /* ------------------------------------- 내부함수 ------------------------------------- */
+    /* ------------------------------------- 모듈함수 ------------------------------------- */
     /* ----------------------------------------------------------------------------------- */
 
     // 도시이름으로부터 위도-경도 GET [OpenCage]
     @SuppressWarnings({ "unchecked" })
-    public Map<String, Double> getLATLNGFromCity(String cityName) {
+    public Map<String, Double> getLATLNGFromCity(String destination) {
         Map<String, Double> returnMap = new HashMap<String, Double>();
-        if (cityName == null || cityName.isBlank()) return returnMap;
+        if (destination == null || destination.isBlank()) return returnMap;
 
         try{
-            String endpointURL = String.format(ENDPOINT_FORMAT_LATLNG, openCageURL, cityName, openCageKey);
+            String endpointURL = String.format(ENDPOINT_FORMAT_LATLNG, openCageURL, destination, openCageKey);
 
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 endpointURL,
@@ -148,16 +136,14 @@ public class WeatherAPIService {
                     double lat = ((Number) geometry.get("lat")).doubleValue();
                     double lng = ((Number) geometry.get("lng")).doubleValue();
 
-                    logger.info("도시 [{}]의 위도/경도 조회 성공 → lat={}, lng={}", cityName, lat, lng);
+                    logger.info("도시 [{}]의 위도/경도 조회 성공 → lat={}, lng={}", destination, lat, lng);
 
                     returnMap.put("lat", lat);
                     returnMap.put("lng", lng);
                 }
             }
-
-            logger.warn("도시 [{}]의 위도/경도 결과가 비어 있습니다.", cityName);
         } catch (Exception e) {
-            logger.error("OpenCage API 호출 중 오류 발생 - 도시명: [{}]", cityName, e);
+            logger.error("OpenCage API 호출 중 오류 발생 - 도시명: [{}]", destination, e);
         }
 
         return returnMap;
@@ -246,5 +232,30 @@ public class WeatherAPIService {
         }
 
         return forecastMap;
+    }
+
+    // 날씨 표기데이터 Markdown문법 적용용
+    private String createWeatherMarkdown(String destination, List<Map<String, Object>> weatherInfoList) {
+        StringBuilder response = new StringBuilder();
+        response.append("## 🌤️ ").append(destination).append(" 날씨 정보\n\n");
+        
+        // 테이블 헤더
+        response.append("| 📅 날짜 | 🌡️ 온도 | ☀️ 낮 | 🌙 밤 |\n");
+        response.append("|---------|---------|-------|-------|\n");
+        
+        for (Map<String, Object> weatherInfo : weatherInfoList) {
+            String date = (String) weatherInfo.get("date");
+            String minTemp = String.valueOf(weatherInfo.get("min_temp"));
+            String maxTemp = String.valueOf(weatherInfo.get("max_temp"));
+            String dayPhrase = (String) weatherInfo.get("day_phrase");
+            String nightPhrase = (String) weatherInfo.get("night_phrase");
+            
+            response.append("| ").append(date).append(" | ")
+                    .append(minTemp).append("°C ~ ").append(maxTemp).append("°C | ")
+                    .append(dayPhrase).append(" | ")
+                    .append(nightPhrase).append(" |\n");
+        }
+        
+        return response.toString();
     }
 }
