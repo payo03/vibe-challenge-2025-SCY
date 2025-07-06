@@ -8,3 +8,10 @@ mybatis.type-aliases-package=com.example.demo.dto
 mybatis.configuration.map-underscore-to-camel-case=true
 
 default.user=demo-user
+
+# OpenCage, AccuWeather API 설정
+opencage.coordinate.key=opencage
+opencage.coordinate.url=https://api.opencagedata.com/geocode/v1/json
+accu.api.key=accuweather
+accu.api.location.url=http://dataservice.accuweather.com/locations/v1/cities/geoposition/search
+accu.api.weather.url=https://dataservice.accuweather.com/forecasts/v1/daily/5day/
