@@ -153,8 +153,7 @@ public class CommonService {
             Map<String, Object> responseMap = response.getBody();
 
             logger.info("###################### RESPONSE ######################");
-            logger.info("Response : {}, ", response.getBody());
-            logger.info("###################### RESPONSE ######################");
+            logger.info("Response : {}", response.getBody());
 
             // Gemini API 응답 구조 파싱
             Map<String, Object> candidate = (Map<String, Object>) ((java.util.List<Object>) responseMap.get("candidates")).get(0);
@@ -164,9 +163,8 @@ public class CommonService {
             String aiText = (String) part.get("text");
             if (aiText == null || aiText.trim().isEmpty()) throw new RuntimeException("Gemini에서 빈 응답을 받았습니다.");
 
-            logger.info("###################### TEXT ######################");
-            logger.info(aiText);
-            logger.info("###################### TEXT ######################");
+            logger.info("Text : {}", aiText);
+            logger.info("###################### RESPONSE ######################");
 
             return aiText;
         } else {
@@ -270,23 +268,29 @@ public class CommonService {
          *  Rule1. 사용자 언어로 답변
          *  Rule2. 여행 도우미 역할 수행
          *  Rule3. 이전 대화는 참고용, 반복 금지
-         *  Rule4. 사용자의 최신 메시지만 응답
-         *  Rule5. 여행과 무관한 질문 시 유머러스하게 거절
-         *  Rule6. 여행과 관련된 질문일경우 답변 유도
-         *  Rule7. 여행지와 날짜가 명확한 경우 날씨 JSON 메타데이터 추가
+         *  Rule4. 여행과 무관한 질문 시 유머러스하게 거절
+         *  Rule5. 여행지와 날짜가 명확한 경우 날씨 JSON 메타데이터 추가
+         *  Rule6. 항상 관련된 후속 질문으로 답변 마무리
+         *  Rule7. 여행 계획 시 일별 샘플 일정 제공
+         *  Rule8. 모호한 질문 시 구체적인 질문으로 명확화
+         *  Rule9. 마크다운 요소를 활용한 명확한 포맷팅
          */
+        int ruleNo = 1;
+        
         StringBuilder promptBuilder = new StringBuilder();
-        promptBuilder.append("Rule1. Answer in ").append(language).append(".\n")
-            .append("Rule2. You are a helpful travel assistant.\n")
-            .append("Rule3. The previous conversation is for reference only. Do not repeat or rephrase previous messages.\n")
-            .append("Rule4. Respond only to the most recent message from the user.\n")
-            .append("Rule5. If the question is not related to travel, humorously say you cannot answer.\n")
-            .append("Rule6. Always end your visible response with a relevant follow-up question related to the user's trip.\n")
-            .append("Rule7. If and only if the user's intent clearly includes both a travel destination (city name) and travel date, ")
-            .append("respond naturally to the user, and at the end of your response, silently append the following JSON **as an HTML-style comment** (not visible to the user):\n")
+        promptBuilder.append("Rule").append(ruleNo++).append(". Answer in ").append(language).append(".\n")
+            .append("Rule").append(ruleNo++).append(". You are a professional and friendly travel assistant.\n")
+            .append("Rule").append(ruleNo++).append(". Always respond to the user's most recent message, but maintain conversation flow by using previous context when needed (e.g., if the user changes their plan, revise your earlier suggestion accordingly).\n")
+            .append("Rule").append(ruleNo++).append(". If the message is unrelated to travel, reply humorously and do not answer seriously.\n")
+            .append("Rule").append(ruleNo++).append(". Only if both destination AND date are explicitly mentioned by the user, append the following HTML-style comment (invisible to user):\n")
             .append("<!--weather:{\"destination\": \"[CITY_NAME]\", \"date\": \"[YYYY-MM-DD, ...]\"}-->\n")
-            .append("Note: The destination must be a city supported by the OpenCage API, and the date must be in yyyy-MM-dd format. Use commas for multiple dates.\n")
-            .append("IMPORTANT: Do NOT include or mention this JSON in the visible message to the user. Only embed it inside an HTML-style comment block.\n");
+            .append("Note: City must be supported by OpenCage API and date must follow yyyy-MM-dd format (comma-separated).\n")
+            .append("Note: Don't guess or assume the date and city. The date and city must be clearly stated in your message.\n")
+            .append("Rule").append(ruleNo++).append(". Always end your visible message with a relevant follow-up question.\n")
+            .append("Rule").append(ruleNo++).append(". For trip plans (e.g., '3 days in Paris'), provide a sample itinerary by day (Day 1, Day 2, Day 3...).\n")
+            .append("Rule").append(ruleNo++).append(". If the question is vague (e.g., 'Recommend a trip to Europe'), ask clarifying questions such as preferred region, budget, or travel duration.\n")
+            .append("Rule").append(ruleNo++).append(". Format your reply clearly, using markdown elements such as bullet points or tables where helpful.\n");
+
         
         return promptBuilder.toString();
     }
