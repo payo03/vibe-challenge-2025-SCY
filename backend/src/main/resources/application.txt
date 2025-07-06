@@ -1,3 +1,37 @@
+spring.application.name=vibe-challenge-2025-backend
+
+# Server Configuration
+server.port=8080
+spring.profiles.active=dev
+
+# Actuator Configuration
+management.endpoints.web.exposure.include=*
+management.endpoint.health.show-details=always
+management.endpoints.web.base-path=/actuator
+
+# Application Info
+info.app.name=Vibe Challenge 2025 Backend
+info.app.version=1.0.0
+info.app.description=Spring Boot Backend for Vibe Challenge 2025
+
+# Logging Configuration
+logging.level.com.example.demo=DEBUG
+logging.level.org.springframework.web=DEBUG
+logging.level.org.springframework.boot.autoconfigure.web=warn
+logging.level.org.springframework.web.servlet.resource=warn
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} - %msg%n
+
+# Gemini API 설정
+gemini.api.key=gemini
+gemini.api.url=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent
+
+# OpenCage, AccuWeather API 설정
+opencage.api.key=opencage
+opencage.api.url=https://api.opencagedata.com/geocode/v1/json
+accu.api.key=accu
+accu.api.location.url=http://dataservice.accuweather.com/locations/v1/cities/geoposition/search
+accu.api.weather.url=https://dataservice.accuweather.com/forecasts/v1/daily/5day/
+
 # SQLite 데이터베이스 설정
 spring.datasource.url=jdbc:sqlite:database/SQLite.db
 spring.datasource.driver-class-name=org.sqlite.JDBC
@@ -8,10 +42,3 @@ mybatis.type-aliases-package=com.example.demo.dto
 mybatis.configuration.map-underscore-to-camel-case=true
 
 default.user=demo-user
-
-# OpenCage, AccuWeather API 설정
-opencage.coordinate.key=opencage
-opencage.coordinate.url=https://api.opencagedata.com/geocode/v1/json
-accu.api.key=accuweather
-accu.api.location.url=http://dataservice.accuweather.com/locations/v1/cities/geoposition/search
-accu.api.weather.url=https://dataservice.accuweather.com/forecasts/v1/daily/5day/
