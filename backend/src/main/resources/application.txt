@@ -22,13 +22,13 @@ logging.level.org.springframework.web.servlet.resource=warn
 logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} - %msg%n
 
 # Gemini API 설정
-gemini.api.key=gemini
+gemini.api.key=AIzaSyCS6GfP-wS-8zSUJsXfAIrLPnTdyiSSQU4
 gemini.api.url=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent
 
 # OpenCage, AccuWeather API 설정
-opencage.api.key=opencage
+opencage.api.key=b8844ef0dc6f4ca094c6b637ee754b49
 opencage.api.url=https://api.opencagedata.com/geocode/v1/json
-accu.api.key=accu
+accu.api.key=IIGLT5iDG0lPoElB9r8b82nBU86ZA7Eo
 accu.api.location.url=http://dataservice.accuweather.com/locations/v1/cities/geoposition/search
 accu.api.weather.url=https://dataservice.accuweather.com/forecasts/v1/daily/5day/
 
